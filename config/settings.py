@@ -61,6 +61,11 @@ for _var in ("VERCEL_URL", "VERCEL_BRANCH_URL", "VERCEL_PROJECT_PRODUCTION_URL")
     if _host:
         ALLOWED_HOSTS.append(_host)
         CSRF_TRUSTED_ORIGINS.append(f"https://{_host}")
+if ON_VERCEL:
+    # Vercel solo enruta a esta función las peticiones de los dominios del proyecto
+    # (alias de producción, rama y despliegue), así que aceptar *.vercel.app es seguro aquí.
+    ALLOWED_HOSTS.append(".vercel.app")
+    CSRF_TRUSTED_ORIGINS.append("https://*.vercel.app")
 # Detrás de un proxy de confianza (Vercel): esquema HTTPS e IP real del cliente.
 BEHIND_PROXY = env_bool("NEXTPOINT_BEHIND_PROXY", ON_VERCEL)
 if BEHIND_PROXY:
