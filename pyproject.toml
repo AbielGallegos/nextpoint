@@ -1,0 +1,8 @@
+[project]
+name = "nextpoint"
+version = "1.0.0"
+requires-python = ">=3.12"
+
+[tool.vercel.scripts]
+# Se ejecuta en cada despliegue: aplica migraciones y carga los datos demo (idempotente).
+build = "python manage.py deploy_prepare"

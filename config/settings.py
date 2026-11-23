@@ -54,6 +54,19 @@ if not SECRET_KEY:
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("NEXTPOINT_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1]").split(",") if h.strip()]
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get("NEXTPOINT_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
 
+# Despliegue en Vercel: los dominios del despliegue llegan como variables de sistema.
+ON_VERCEL = bool(os.environ.get("VERCEL"))
+for _var in ("VERCEL_URL", "VERCEL_BRANCH_URL", "VERCEL_PROJECT_PRODUCTION_URL"):
+    _host = os.environ.get(_var, "").strip()
+    if _host:
+        ALLOWED_HOSTS.append(_host)
+        CSRF_TRUSTED_ORIGINS.append(f"https://{_host}")
+# Detrás de un proxy de confianza (Vercel): esquema HTTPS e IP real del cliente.
+BEHIND_PROXY = env_bool("NEXTPOINT_BEHIND_PROXY", ON_VERCEL)
+if BEHIND_PROXY:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CLIENT_IP_HEADER = os.environ.get("NEXTPOINT_CLIENT_IP_HEADER", "HTTP_X_REAL_IP" if ON_VERCEL else "")
+
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -111,7 +124,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Base de datos: PostgreSQL recomendado (DATABASE_URL); SQLite como respaldo sin configuración.
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 if DATABASE_URL:
-    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=60)}
+    # En funciones serverless no se conservan conexiones; con el pooler en modo transacción
+    # (Supabase, puerto 6543) se desactivan los cursores del lado del servidor.
+    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=0 if ON_VERCEL else 60)}
+    if env_bool("NEXTPOINT_DB_TRANSACTION_POOLER", ":6543" in DATABASE_URL):
+        DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 else:
     DATABASES = {
         "default": {
@@ -164,6 +181,10 @@ WHITENOISE_USE_FINDERS = True
 # Adjuntos privados: fuera de STATIC y sin URL pública; se descargan por una vista autenticada.
 PRIVATE_MEDIA_ROOT = Path(os.environ.get("NEXTPOINT_PRIVATE_MEDIA", BASE_DIR / "media_private"))
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+# En serverless el disco es efímero: los adjuntos se guardan en la base (bytea).
+ATTACHMENTS_IN_DB = env_bool("NEXTPOINT_ATTACHMENTS_IN_DB", ON_VERCEL)
+# Vercel limita el cuerpo de la petición a 4.5 MB.
+MAX_UPLOAD_MB = int(os.environ.get("NEXTPOINT_MAX_UPLOAD_MB", 4 if ON_VERCEL else 5))
 DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -175,12 +196,14 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
-SECURE_COOKIES = env_bool("NEXTPOINT_SECURE_COOKIES", False)  # activar al servir por HTTPS
+SECURE_COOKIES = env_bool("NEXTPOINT_SECURE_COOKIES", ON_VERCEL)  # activar al servir por HTTPS
 SESSION_COOKIE_SECURE = SECURE_COOKIES
 CSRF_COOKIE_SECURE = SECURE_COOKIES
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
+if SECURE_COOKIES:
+    SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30
 
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 

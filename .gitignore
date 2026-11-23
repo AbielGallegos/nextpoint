@@ -7,3 +7,5 @@ media_private/*
 !media_private/.gitkeep
 backups/
 .venv/
+.vercel/
+.env.local

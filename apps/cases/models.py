@@ -137,4 +137,5 @@ class RequestAttachment(models.Model):
     original_name = models.CharField(max_length=120)
     mime = models.CharField(max_length=40)
     size = models.PositiveIntegerField()
+    data = models.BinaryField(null=True, blank=True, editable=False)  # solo cuando ATTACHMENTS_IN_DB
     created_at = models.DateTimeField(auto_now_add=True)

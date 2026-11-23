@@ -28,6 +28,11 @@ TECHNICAL_ROLES = {Role.SUPPORT, Role.ADMIN}
 
 
 def _client_ip(request):
+    from django.conf import settings
+
+    header = getattr(settings, "CLIENT_IP_HEADER", "")
+    if header and request.META.get(header):
+        return request.META[header].split(",")[0].strip()
     return request.META.get("REMOTE_ADDR", "")
 
 

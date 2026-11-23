@@ -116,7 +116,7 @@ def _set_status(req, target, actor, *, body="", visibility=RequestEvent.Visibili
 def validate_upload(upload, campus=None):
     if upload is None:
         return None
-    max_mb = get_policy("max_attachment_mb", campus)
+    max_mb = min(get_policy("max_attachment_mb", campus), settings.MAX_UPLOAD_MB)
     if upload.size > max_mb * 1024 * 1024:
         raise DomainError("VALIDATION_FAILED", fields={"attachment": f"El archivo supera {max_mb} MB."})
     head = upload.read(16)
@@ -129,6 +129,12 @@ def validate_upload(upload, campus=None):
 
 
 def _store_upload(req, actor, upload, mime):
+    safe_name = "".join(c for c in (upload.name or "adjunto") if c.isalnum() or c in "._- ")[:100] or "adjunto"
+    ext = {"application/pdf": ".pdf", "image/png": ".png", "image/jpeg": ".jpg"}[mime]
+    if settings.ATTACHMENTS_IN_DB:
+        content = b"".join(upload.chunks())
+        return RequestAttachment.objects.create(request=req, uploaded_by=actor, storage_key=secrets.token_hex(16) + ext,
+                                                original_name=safe_name, mime=mime, size=len(content), data=content)
     root = settings.PRIVATE_MEDIA_ROOT
     root.mkdir(parents=True, exist_ok=True)
     key = secrets.token_hex(16) + {"application/pdf": ".pdf", "image/png": ".png", "image/jpeg": ".jpg"}[mime]

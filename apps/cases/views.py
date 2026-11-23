@@ -120,10 +120,14 @@ def attachment(request, pk):
         raise Http404
     from django.conf import settings
 
+    record(request.user, "case.attachment_downloaded", req, detail={"attachment": att.pk})
+    if att.data is not None:
+        import io
+
+        return FileResponse(io.BytesIO(bytes(att.data)), content_type=att.mime, as_attachment=True, filename=att.original_name)
     path = settings.PRIVATE_MEDIA_ROOT / att.storage_key
     if not path.exists():
         raise Http404
-    record(request.user, "case.attachment_downloaded", req, detail={"attachment": att.pk})
     return FileResponse(open(path, "rb"), content_type=att.mime, as_attachment=True, filename=att.original_name)
 
 
