@@ -230,6 +230,7 @@ legend { font-weight: 650; margin-bottom: .5rem; }
 .stepper li.done span { background: var(--brand-600); border-color: var(--brand-600); color: #fff; }
 .stepper li.current { color: var(--brand-700); } .stepper li.current span { border-color: var(--brand-600); box-shadow: 0 0 0 4px var(--brand-100); }
 .stepper li.current::before { background: linear-gradient(90deg, var(--brand-600) 50%, var(--g-200) 50%); }
+.stepper li.skipped { color: var(--g-400); } .stepper li.skipped::before { background: var(--brand-600); }
 .stepper li.stopped span { background: var(--danger-100); border-color: var(--danger-600); color: var(--danger-700); }
 
 /* ---------- definition lists ---------- */

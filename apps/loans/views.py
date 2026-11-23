@@ -28,9 +28,12 @@ def _steps(req):
         reached = [e.status_after for e in req.events.all() if e.status_after in order]
         idx = max((order.index(s) for s in reached), default=0) + 1
         final = False
+    reached_codes = {e.status_after for e in req.events.all()}
     out = []
     for i, (code, label) in enumerate(STEPS):
-        if i < idx or (final and i == idx):
+        if code == "en_revision" and code not in reached_codes and i < idx:
+            state = "skipped"  # la revisión es opcional: no se muestra como realizada si no ocurrió
+        elif i < idx or (final and i == idx):
             state = "done"
         elif i == idx and req.status in order:
             state = "current"
