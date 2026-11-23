@@ -1,0 +1,23 @@
+{% extends "layouts/public.html" %}{% load np %}
+{% block title %}Centro de ayuda{% endblock %}
+{% block content %}
+<section class="pub-section"><div class="pub-wrap" style="max-width:860px">
+  <div class="eyebrow">{% icon 'circle-help' 'i-sm' %} Centro de ayuda</div>
+  <h1>Preguntas frecuentes</h1>
+  <div class="faq mt-2">
+    <details open><summary>¿Cómo solicito un material?</summary><p class="muted">Entra a Materiales, abre la ficha del recurso, revisa su disponibilidad y presiona «Solicitar préstamo». Recibirás un folio (por ejemplo NP-PRE-00012) para consultar el estado.</p></details>
+    <details><summary>¿Qué significa «Recibido» en mi solicitud?</summary><p class="muted">Es el acuse de recibo: el área confirmó que tiene tu caso. No significa que esté resuelto; recibirás otra notificación cuando cambie su estado.</p></details>
+    <details><summary>¿Cómo decide SmartMatch qué recomendarme?</summary><p class="muted">Usa reglas transparentes: coincidencia de categoría, etiquetas de tu necesidad, campus, disponibilidad y vigencia. No usa calificaciones, salud ni datos socioeconómicos. Cada tarjeta explica su puntaje.</p></details>
+    <details><summary>¿Una recomendación significa que mi préstamo está aprobado?</summary><p class="muted">No. Solo el área responsable aprueba préstamos, después de validar disponibilidad.</p></details>
+    <details><summary>¿Los cursos dan constancia oficial?</summary><p class="muted">No. Los cursos del prototipo son contenidos de ejemplo y no emiten certificados oficiales.</p></details>
+    <details><summary>¿Cómo obtengo una cuenta de personal?</summary><p class="muted">Solo por invitación de una cuenta autorizada. No existe registro público de roles con privilegios.</p></details>
+  </div>
+  <h2 class="mt-3">Términos esenciales</h2>
+  <dl class="dl card card-pad">
+    <dt>Folio</dt><dd>Identificador único de una solicitud o préstamo.</dd>
+    <dt>Acuse</dt><dd>Confirmación inicial de que el área recibió el caso.</dd>
+    <dt>Ejemplar</dt><dd>Unidad física de un material (un recurso puede tener varios).</dd>
+    <dt>Alcance</dt><dd>Campus o área en los que una cuenta del personal puede operar.</dd>
+  </dl>
+</div></section>
+{% endblock %}

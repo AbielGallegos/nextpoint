@@ -1,0 +1,34 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}Solicitar {{ r.name }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'catalog:list' %}">Materiales</a>{% icon 'chevron-right' 'i-sm' %}<a href="{% url 'catalog:detail' r.pk %}">{{ r.name }}</a>{% icon 'chevron-right' 'i-sm' %}<span>Solicitar</span></nav>
+<div class="page-head"><div><div class="eyebrow">{% icon 'send' 'i-sm' %} Solicitud de préstamo</div><h1>{{ r.name }}</h1><p>Indica fechas y finalidad. Recibirás un folio único; el área {{ r.area.name|lower }} revisará la solicitud.</p></div></div>
+<div class="grid g-main">
+  <form class="card" method="post" novalidate>{% csrf_token %}
+    <input type="hidden" name="idempotency_key" value="{{ key }}">
+    <div class="card-body">
+      {% if errors %}<div class="error-summary" role="alert"><strong>Revisa los campos marcados.</strong><ul>{% for k, e in errors.items %}<li><a href="#f-{{ k }}">{{ e }}</a></li>{% endfor %}</ul></div>{% endif %}
+      <div class="form-grid mt-1">
+        <div class="field{% if errors.start_date %} has-error{% endif %}"><label class="label" for="f-start_date">Fecha de inicio <span class="req">*</span></label>
+          <input class="input" type="date" id="f-start_date" name="start_date" min="{{ today|date:'Y-m-d' }}" value="{% if data.start_date %}{{ data.start_date }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}" required {% if errors.start_date %}aria-invalid="true" aria-describedby="e-start"{% endif %}>
+          {% if errors.start_date %}<span class="error-text" id="e-start">{% icon 'alert-triangle' 'i-sm' %}{{ errors.start_date }}</span>{% endif %}</div>
+        <div class="field{% if errors.due_date %} has-error{% endif %}"><label class="label" for="f-due_date">Devolución prevista <span class="req">*</span></label>
+          <span class="help" id="h-due">Máximo {{ max_days }} día{{ max_days|pluralize }} contando el inicio.</span>
+          <input class="input" type="date" id="f-due_date" name="due_date" min="{{ today|date:'Y-m-d' }}" value="{% if data.due_date %}{{ data.due_date }}{% else %}{{ default_due|date:'Y-m-d' }}{% endif %}" required aria-describedby="h-due{% if errors.due_date %} e-due{% endif %}" {% if errors.due_date %}aria-invalid="true"{% endif %}>
+          {% if errors.due_date %}<span class="error-text" id="e-due">{% icon 'alert-triangle' 'i-sm' %}{{ errors.due_date }}</span>{% endif %}</div>
+        <div class="field span-2{% if errors.purpose %} has-error{% endif %}"><label class="label" for="f-purpose">Finalidad <span class="req">*</span></label>
+          <span class="help" id="h-purpose">Ejemplo: «Práctica de redes de la materia X». No incluyas datos personales.</span>
+          <textarea class="textarea" id="f-purpose" name="purpose" maxlength="300" data-counter="c-purpose" required aria-describedby="h-purpose c-purpose{% if errors.purpose %} e-purpose{% endif %}" {% if errors.purpose %}aria-invalid="true"{% endif %}>{{ data.purpose }}</textarea>
+          <span class="help" id="c-purpose" aria-live="polite"></span>
+          {% if errors.purpose %}<span class="error-text" id="e-purpose">{% icon 'alert-triangle' 'i-sm' %}{{ errors.purpose }}</span>{% endif %}</div>
+      </div>
+    </div>
+    <div class="card-foot form-actions" style="margin:0"><a class="btn btn-ghost" href="{% url 'catalog:detail' r.pk %}">Cancelar</a><button class="btn btn-primary" type="submit" data-busy-label="Registrando…">{% icon 'send' %} Enviar solicitud</button></div>
+  </form>
+  <aside class="stack">
+    <div class="card card-pad"><h2 style="font-size:1rem">Resumen</h2>
+      <dl class="dl" style="grid-template-columns:110px 1fr"><dt>Código</dt><dd class="mono">{{ r.code }}</dd><dt>Disponibles hoy</dt><dd>{{ av.available }} de {{ av.operable }}</dd><dt>Entrega</dt><dd>{{ r.location.public_hint|default:r.area.name }}</dd><dt>Política</dt><dd>{{ r.loan_policy|default:"Según campus" }}</dd></dl></div>
+    <div class="notice t-brand">{% icon 'info' %}<div class="small">El servidor asigna la solicitud a tu cuenta y campus; vuelve a validar existencias al aprobar. Un doble clic no crea dos folios.</div></div>
+  </aside>
+</div>
+{% endblock %}

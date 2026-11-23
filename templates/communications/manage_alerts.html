@@ -1,0 +1,21 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}Avisos{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'megaphone' 'i-sm' %} Contenido</div><h1>Editor de avisos</h1><p>Un borrador nunca es visible para su audiencia. Los avisos vencidos dejan de mostrarse automáticamente.</p></div>
+  <a class="btn btn-primary" href="{% url 'communications:alert_new' %}">{% icon 'plus' %} Nuevo aviso</a></div>
+<div class="chips"><a class="chip {% if not tab %}is-active{% endif %}" href="?">Todos</a>
+  <a class="chip {% if tab == 'borrador' %}is-active{% endif %}" href="?vista=borrador">Borradores</a><a class="chip {% if tab == 'vigente' %}is-active{% endif %}" href="?vista=vigente">Vigentes</a>
+  <a class="chip {% if tab == 'programado' %}is-active{% endif %}" href="?vista=programado">Programados</a><a class="chip {% if tab == 'expirado' %}is-active{% endif %}" href="?vista=expirado">Expirados</a><a class="chip {% if tab == 'retirado' %}is-active{% endif %}" href="?vista=retirado">Retirados</a></div>
+<div class="card mt-2"><div class="table-wrap"><table class="table responsive">
+  <thead><tr><th>Aviso</th><th>Ámbito</th><th>Audiencia</th><th>Vigencia</th><th>Lecturas</th><th>Estado</th><th></th></tr></thead>
+  <tbody>{% for a in items %}
+    <tr><td class="cell-main"><strong>{{ a.title }}</strong><div class="small subtle">{{ a.get_category_display }} · {{ a.author }}</div></td>
+      <td data-label="Ámbito">{% if a.area %}{{ a.area }}{% elif a.campus %}{{ a.campus }}{% else %}Global{% endif %}</td><td data-label="Audiencia">{{ a.get_audience_display }}</td>
+      <td data-label="Vigencia" class="small">{{ a.publish_at|date:"d/m H:i" }} → {{ a.expires_at|date:"d/m H:i"|default:"sin fin" }}</td><td data-label="Lecturas">{{ a.nreads }}</td>
+      <td data-label="Estado">{% badge a.lifecycle %}</td>
+      <td class="text-right nowrap">{% if a.status == 'borrador' %}<a class="btn btn-sm" href="{% url 'communications:alert_edit' a.pk %}">Editar</a>
+        <form style="display:inline" method="post" action="{% url 'communications:alert_publish' a.pk %}">{% csrf_token %}<button class="btn btn-sm btn-primary" type="submit">Publicar</button></form>
+        {% elif a.status == 'publicado' %}<form style="display:inline" method="post" action="{% url 'communications:alert_withdraw' a.pk %}">{% csrf_token %}<button class="btn btn-sm btn-danger" type="submit">Retirar</button></form>{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="7"><div class="empty"><div class="empty-icon">{% icon 'megaphone' 'i-lg' %}</div><h3>Sin avisos</h3><p>Crea un borrador, revísalo y publícalo para tu ámbito.</p></div></td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% endblock %}

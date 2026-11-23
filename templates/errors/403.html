@@ -1,0 +1,7 @@
+{% extends "errors/_base.html" %}{% load np %}
+{% block title %}Acceso restringido{% endblock %}
+{% block err %}
+<div class="error-code">PERMISSION_DENIED · 403</div>
+<h1>Acceso restringido</h1>
+<p class="muted">No tienes permiso para consultar esta información. Si crees que es un error, solicita a la coordinación que revise tu rol.</p>
+{% endblock %}

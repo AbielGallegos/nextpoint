@@ -1,0 +1,36 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}{{ c.title }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'learning:catalog' %}">Cursos</a>{% icon 'chevron-right' 'i-sm' %}<span>{{ c.title }}</span></nav>
+<div class="grid g-main">
+  <div class="stack">
+    <section class="hero-card">
+      <div class="cluster"><span class="badge" style="background:rgba(255,255,255,.15);color:#fff">{{ c.get_level_display }}</span><span class="badge" style="background:rgba(255,255,255,.15);color:#fff">{{ c.get_mode_display }}</span><span class="badge" style="background:rgba(255,255,255,.15);color:#fff">{% icon 'clock' %}{{ c.duration_minutes }} min</span></div>
+      <h1 class="mt-1">{{ c.title }}</h1><p class="mb-0">{{ c.summary }}</p>
+    </section>
+    <section class="card card-pad"><h2>Sobre el curso</h2><p>{{ c.description }}</p>
+      <p class="small muted mb-0">Autor: {{ c.author }} · Revisó: {{ c.approver|default:"—" }} · Área: {{ c.area }}</p></section>
+    <section class="card"><div class="card-head"><h2>Contenido</h2><span class="small muted">{{ total }} lección{{ total|pluralize:"es" }}</span></div>
+      {% for m in modules %}<div class="card-body" style="padding-bottom:0"><h3 class="small" style="text-transform:uppercase;letter-spacing:.05em;color:var(--g-600)">Módulo {{ m.m.position }} · {{ m.m.title }}</h3></div>
+      <ul class="lesson-nav" style="padding:.3rem .8rem 1rem">{% for l in m.lessons %}
+        <li class="{% if l.pk in done %}done{% endif %}">{% if enrollment %}<a href="{% url 'learning:lesson' l.pk %}">{% if l.pk in done %}{% icon 'check-circle-2' %}{% else %}{% icon 'circle' %}{% endif %} {{ l.title }} <span class="subtle small" style="margin-left:auto">{{ l.duration_minutes }} min</span></a>
+        {% else %}<span class="locked">{% icon 'lock' %} {{ l.title }} <span class="small" style="margin-left:auto">{{ l.duration_minutes }} min</span></span>{% endif %}</li>{% endfor %}</ul>{% endfor %}
+    </section>
+  </div>
+  <aside class="stack">
+    <div class="card card-pad">
+      {% if enrollment %}
+        <h2 style="font-size:1rem">Tu progreso</h2>
+        <div class="cluster" style="align-items:baseline"><span class="kpi-value">{{ pct }} %</span><span class="muted">{{ done|length }} de {{ total }} lecciones</span></div>
+        <div class="progress mt-1 {% if pct == 100 %}is-done{% endif %}" role="progressbar" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100" aria-label="Progreso del curso"><span style="width:{{ pct }}%"></span></div>
+        {% if next_lesson %}<a class="btn btn-primary w-full mt-2" href="{% url 'learning:lesson' next_lesson.pk %}">{% icon 'play-circle' %} {% if done %}Continuar{% else %}Comenzar{% endif %}</a>
+        {% else %}<div class="notice t-ok mt-2">{% icon 'trophy' %}<div>¡Completaste el curso! Reconocimiento no oficial del prototipo.</div></div>{% endif %}
+      {% else %}
+        <h2 style="font-size:1rem">Inscripción gratuita</h2><p class="small muted">Registra tu avance lección por lección. Puedes salir y retomar cuando quieras.</p>
+        <form method="post" action="{% url 'learning:enroll' c.pk %}">{% csrf_token %}<button class="btn btn-primary w-full" type="submit">{% icon 'plus' %} Inscribirme</button></form>
+      {% endif %}
+    </div>
+    <div class="notice t-info small">{% icon 'info' %}<div>Este es un curso de ejemplo del prototipo; no representa una capacitación institucional acreditada.</div></div>
+  </aside>
+</div>
+{% endblock %}

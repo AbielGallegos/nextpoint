@@ -1,0 +1,64 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}SmartMatch{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'sparkles' 'i-sm' %} Orientación explicable</div><h1>SmartMatch</h1>
+  <p>Dinos qué necesitas y te mostramos recursos publicados de tu campus, con el porqué de cada recomendación. No usamos calificaciones, salud ni datos socioeconómicos.</p></div></div>
+<form class="card" method="get" aria-label="Cuestionario SmartMatch">
+  <div class="card-body stack" style="--gap:1.2rem">
+    <fieldset><legend><span class="badge t-brand">1</span> ¿Qué necesitas?</legend>
+      <div class="choice-grid">{% for n in needs %}
+        <div class="choice"><input type="radio" name="need" id="need-{{ n.pk }}" value="{{ n.code }}" data-category="{{ n.category }}" data-tags="{{ n.tags|join:', ' }}" {% if f.need == n.code %}checked{% endif %}>
+          <label for="need-{{ n.pk }}">{{ n.label }}</label></div>{% endfor %}
+      </div></fieldset>
+    <fieldset><legend><span class="badge t-brand">2</span> Categoría</legend>
+      <div class="choice-grid">{% for code, label, ic in categories %}
+        <div class="choice"><input type="radio" name="category" id="cat-{{ code }}" value="{{ code }}" {% if f.category == code %}checked{% endif %}><label for="cat-{{ code }}">{% icon ic %} {{ label }}</label></div>{% endfor %}
+      </div></fieldset>
+    <fieldset><legend><span class="badge t-brand">3</span> Filtros</legend>
+      <div class="form-grid">
+        <div class="field span-2"><label class="label" for="tags">Palabras clave (etiquetas)</label><input class="input" id="tags" name="tags" value="{{ f.tags }}" placeholder="redes, laboratorio" aria-describedby="h-tags"><span class="help" id="h-tags">Separadas por coma. Se comparan con las etiquetas de cada recurso.</span></div>
+        <div class="field"><label class="label" for="mod">Modalidad</label><select class="select" id="mod" name="modalidad"><option value="">Cualquiera</option><option value="presencial" {% if f.modalidad == 'presencial' %}selected{% endif %}>Presencial</option><option value="en línea" {% if f.modalidad == 'en línea' %}selected{% endif %}>En línea</option><option value="mixta" {% if f.modalidad == 'mixta' %}selected{% endif %}>Mixta</option></select></div>
+        <div class="field"><label class="label" for="niv">Nivel (cursos)</label><select class="select" id="niv" name="nivel"><option value="">Cualquiera</option><option value="introductorio" {% if f.nivel == 'introductorio' %}selected{% endif %}>Introductorio</option><option value="intermedio" {% if f.nivel == 'intermedio' %}selected{% endif %}>Intermedio</option><option value="avanzado" {% if f.nivel == 'avanzado' %}selected{% endif %}>Avanzado</option></select></div>
+        <label class="check"><input type="checkbox" name="disponibles" value="1" {% if f.disponibles %}checked{% endif %}> Solo con disponibilidad inmediata</label>
+        <label class="check"><input type="checkbox" name="todos_campus" value="1" {% if f.todos_campus %}checked{% endif %}> Incluir otros campus de la institución</label>
+      </div></fieldset>
+  </div>
+  <div class="card-foot cluster between"><span class="small muted">Pesos vigentes: {% for k, label in weight_labels %}{{ label }} {{ weights|get_item:k }}{% if not forloop.last %} · {% endif %}{% endfor %}{% if rule %} (v{{ rule.version }}){% endif %}</span>
+    <button class="btn btn-primary" type="submit">{% icon 'sparkles' %} Buscar coincidencias</button></div>
+</form>
+
+{% if submitted %}
+<section class="mt-3" aria-labelledby="h-res" aria-live="polite">
+  <div class="cluster between"><h2 id="h-res" class="mb-0">{{ results|length }} recomendación{{ results|length|pluralize:"es" }}</h2>{% if results %}<span class="small muted">Ordenadas por puntaje; empate → disponibilidad y actualización</span>{% endif %}</div>
+  {% if results %}
+  <form method="get" action="{% url 'smartmatch:compare' %}">
+    <input type="hidden" name="category" value="{{ f.category }}"><input type="hidden" name="tags" value="{{ f.tags }}">{% if f.todos_campus %}<input type="hidden" name="todos_campus" value="1">{% endif %}
+    <input type="hidden" name="back" value="{{ request.get_full_path }}">
+    <div class="stack mt-2">
+    {% for r in results %}
+      <article class="card match-card">
+        <div class="score-ring" style="--v:{{ r.score }}" aria-label="Puntaje {{ r.score }} de 100"><b>{{ r.score }}</b></div>
+        <div class="stack" style="--gap:.55rem;min-width:0">
+          <div class="cluster between"><div class="cluster"><span class="badge t-brand">{{ r.kind_label }}</span><span class="badge {% if r.candidate.available %}t-ok{% else %}t-warn{% endif %}">{{ r.candidate.availability_label }}</span>{% if r.candidate.modality %}<span class="badge">{{ r.candidate.modality }}</span>{% endif %}</div>
+            <label class="compare-pick"><input type="checkbox" name="item" value="{{ r.key }}" data-compare> Comparar</label></div>
+          <h3 class="mb-0"><a href="{{ r.candidate.url }}" style="color:var(--ink);text-decoration:none">{{ r.candidate.title }}</a></h3>
+          <p class="small muted mb-0">{{ r.candidate.summary|truncatechars:170 }}</p>
+          <div class="match-why">{% icon 'info' %}<span>{{ r.explanation }}</span></div>
+          <details><summary class="small" style="cursor:pointer;font-weight:600">Ver desglose del puntaje</summary>
+            <div class="breakdown mt-1">{% for row in r.rows %}<div class="breakdown-row"><span>{{ row.label }}</span><span class="bar"><span style="width:{{ row.pct }}%"></span></span><span class="text-right"><strong>{{ row.got }}</strong>/{{ row.max }}</span></div>{% endfor %}</div>
+            <p class="small subtle mt-1 mb-0">{% tags_list r.candidate.tags r.matched_tags %}</p></details>
+          <div class="cluster"><a class="btn btn-primary btn-sm" href="{{ r.candidate.url }}">{{ r.candidate.action_label }} {% icon 'arrow-right' 'i-sm' %}</a>{% if r.candidate.kind == 'materiales' and r.candidate.available %}<a class="btn btn-sm" href="{% url 'loans:request' r.candidate.obj_id %}">{% icon 'send' 'i-sm' %} Solicitar</a>{% endif %}</div>
+        </div>
+      </article>
+    {% endfor %}
+    </div>
+    <div class="sticky-bar cluster between mt-2" data-compare-bar hidden><span><strong data-compare-count>0</strong> seleccionados (máx. 3)</span><button class="btn btn-primary" type="submit">{% icon 'scale' %} Comparar</button></div>
+  </form>
+  {% else %}
+  <div class="card empty mt-2"><div class="empty-icon">{% icon 'compass' 'i-lg' %}</div><h3>No encontramos una coincidencia disponible</h3>
+    <p>Consulta los recursos relacionados o pide apoyo. SmartMatch no inventa ofertas.</p>
+    <div class="cluster" style="justify-content:center">{% for code, label in related %}<a class="chip" href="?category={{ code }}">{{ label }}</a>{% endfor %}<a class="btn btn-sm btn-primary" href="{% url 'cases:new' %}">Pedir orientación</a></div></div>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

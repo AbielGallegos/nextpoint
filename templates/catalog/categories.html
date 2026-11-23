@@ -1,0 +1,16 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}Categorías{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'catalog:manage_list' %}">Recursos</a>{% icon 'chevron-right' 'i-sm' %}<span>Categorías</span></nav>
+<div class="page-head"><div><h1>Categorías de recursos</h1><p>Las categorías activas aparecen en los filtros del catálogo del campus.</p></div></div>
+<div class="grid g-main">
+  <div class="card"><div class="table-wrap"><table class="table responsive"><thead><tr><th>Categoría</th><th>Identificador</th><th>Recursos</th></tr></thead><tbody>
+    {% for c in cats %}<tr><td class="cell-main">{% icon c.icon %} <strong>{{ c.name }}</strong>{% if c.parent %}<div class="small subtle">dentro de {{ c.parent }}</div>{% endif %}</td><td data-label="Identificador" class="mono">{{ c.slug }}</td><td data-label="Recursos">{{ c.n }}</td></tr>{% endfor %}
+  </tbody></table></div></div>
+  <form class="card card-pad" method="post" novalidate>{% csrf_token %}
+    <h2 style="font-size:1rem">Nueva categoría</h2>
+    {% field form.name %}{% field form.slug help_text="Minúsculas y guiones, p. ej. robotica" %}{% field form.parent %}{% field form.icon help_text="Nombre de icono (p. ej. package, zap, server)" %}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">Crear categoría</button></div>
+  </form>
+</div>
+{% endblock %}

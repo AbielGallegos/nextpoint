@@ -1,0 +1,60 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}{{ req.folio }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'cases:mine' %}">Mis solicitudes</a>{% icon 'chevron-right' 'i-sm' %}<span class="mono">{{ req.folio }}</span></nav>
+<div class="page-head">
+  <div><div class="cluster"><span class="tag mono">{{ req.folio }}</span>{% badge req.status %}</div><h1 class="mt-1">{{ req.subject }}</h1>
+  <p>{{ req.category }} · atiende {{ req.area }}{% if req.assigned_to %} · responsable asignado{% endif %}</p></div>
+  {% if req.status in 'nuevo clasificado asignado acusado requiere_info' %}<button class="btn btn-danger" data-confirm-dialog="dlg-cancel">{% icon 'x' %} Cancelar</button>{% endif %}
+</div>
+<div class="card card-pad">{% include "loans/_steps.html" %}</div>
+{% if req.status == 'acusado' %}<div class="notice t-brand mt-2">{% icon 'mail' %}<div><strong>Recibimos tu solicitud.</strong> Aún está en atención; recibirás una actualización cuando cambie su estado.</div></div>{% endif %}
+{% if req.status == 'requiere_info' %}<div class="notice t-warn mt-2">{% icon 'circle-help' %}<div><strong>El área necesita información adicional.</strong> Respóndele con un mensaje abajo.</div></div>{% endif %}
+{% if req.status == 'resuelto' %}
+<div class="card card-pad mt-2" style="border-color:#b9e7d3">
+  <h2 style="font-size:1.05rem">{% icon 'check-circle-2' %} El área marcó tu caso como resuelto</h2>
+  <p class="tl-body">{{ req.resolution }}</p>
+  <div class="cluster mt-1">
+    <form method="post" action="{% url 'cases:my_action' req.pk 'confirm' %}">{% csrf_token %}<button class="btn btn-primary" type="submit">{% icon 'thumbs-up' %} Confirmar resolución</button></form>
+    <button class="btn" data-confirm-dialog="dlg-reopen">{% icon 'refresh-cw' %} Solicitar revisión</button>
+  </div>
+</div>
+{% endif %}
+<div class="grid g-main mt-2">
+  <div class="stack">
+    <section class="card"><div class="card-head"><h2>Seguimiento</h2><span class="small muted">Solo se muestran eventos públicos</span></div>
+      <div class="card-body">{% include "cases/_timeline.html" %}</div>
+      {% if req.status not in 'cerrado rechazado cancelado' %}
+      <form class="card-foot" method="post" action="{% url 'cases:my_action' req.pk 'message' %}">{% csrf_token %}
+        <label class="label" for="msg">Enviar un mensaje al área</label>
+        <textarea class="textarea mt-1" id="msg" name="body" maxlength="2000" style="min-height:80px" required></textarea>
+        <div class="form-actions" style="margin-top:.6rem"><button class="btn btn-primary" type="submit">{% icon 'send' %} Enviar</button></div>
+      </form>{% endif %}
+    </section>
+  </div>
+  <aside class="stack">
+    <div class="card card-pad"><h2 style="font-size:1rem">Tu solicitud</h2>
+      <p class="tl-body" style="margin-top:0">{{ req.description }}</p>
+      <dl class="dl" style="grid-template-columns:110px 1fr"><dt>Registrada</dt><dd>{{ req.created_at|date:"d/m/Y H:i" }}</dd><dt>Prioridad</dt><dd>{{ req.get_priority_display }}</dd>
+        {% if req.acknowledged_at %}<dt>Acuse</dt><dd>{{ req.acknowledged_at|date:"d/m/Y H:i" }}</dd>{% endif %}{% if req.closed_at %}<dt>Cierre</dt><dd>{{ req.closed_at|date:"d/m/Y H:i" }}</dd>{% endif %}</dl>
+      {% for a in attachments %}<a class="btn btn-sm mt-1" href="{% url 'cases:attachment' a.pk %}">{% icon 'paperclip' 'i-sm' %} {{ a.original_name }}</a>{% endfor %}
+    </div>
+    {% if req.status == 'cerrado' %}
+      {% if req.rating %}<div class="card card-pad"><h2 style="font-size:1rem">Tu valoración</h2><p class="mb-0">{{ req.rating }} / 5 {% if req.rating_comment %}· {{ req.rating_comment }}{% endif %}</p></div>
+      {% else %}
+      <form class="card card-pad" method="post" action="{% url 'cases:my_action' req.pk 'rate' %}">{% csrf_token %}
+        <fieldset><legend style="font-size:1rem">¿Cómo fue la atención? <span class="small muted">(opcional)</span></legend>
+          <div class="cluster">{% for n in "12345" %}<label class="check"><input type="radio" name="rating" value="{{ n }}" required> {{ n }}</label>{% endfor %}</div></fieldset>
+        <div class="field mt-1"><label class="label" for="rc">Comentario</label><input class="input" id="rc" name="comment" maxlength="300"></div>
+        <div class="form-actions"><button class="btn btn-primary btn-sm" type="submit">Enviar valoración</button></div>
+      </form>{% endif %}
+    {% endif %}
+  </aside>
+</div>
+<dialog class="modal" id="dlg-cancel" aria-labelledby="dc-t"><form method="post" action="{% url 'cases:my_action' req.pk 'cancel' %}">{% csrf_token %}
+  <div class="modal-head"><h2 id="dc-t">¿Cancelar {{ req.folio }}?</h2></div><div class="modal-body"><p class="muted">El caso quedará como cancelado; el historial se conserva.</p></div>
+  <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Volver</button><button class="btn btn-solid-danger" type="submit">Cancelar solicitud</button></div></form></dialog>
+<dialog class="modal" id="dlg-reopen" aria-labelledby="dr-t"><form method="post" action="{% url 'cases:my_action' req.pk 'reopen' %}">{% csrf_token %}
+  <div class="modal-head"><h2 id="dr-t">Solicitar revisión</h2></div><div class="modal-body"><div class="field"><label class="label" for="rr">¿Qué quedó pendiente? <span class="req">*</span></label><textarea class="textarea" id="rr" name="body" required minlength="5" maxlength="2000"></textarea></div></div>
+  <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Volver</button><button class="btn btn-primary" type="submit">Enviar a revisión</button></div></form></dialog>
+{% endblock %}

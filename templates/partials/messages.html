@@ -1,0 +1,11 @@
+{% load np %}{% if messages %}
+<div class="toasts" role="status" aria-live="polite">
+  {% for m in messages %}
+  <div class="notice toast {% if m.level_tag == 'error' %}t-danger{% elif m.level_tag == 'warning' %}t-warn{% elif m.level_tag == 'success' %}t-ok{% else %}t-info{% endif %}"{% if m.level_tag != 'error' %} data-autohide{% endif %}>
+    {% if m.level_tag == 'error' %}{% icon 'alert-triangle' %}{% elif m.level_tag == 'success' %}{% icon 'check-circle-2' %}{% else %}{% icon 'info' %}{% endif %}
+    <div style="flex:1">{{ m }}</div>
+    <button class="icon-btn" type="button" data-dismiss aria-label="Cerrar aviso" style="width:28px;height:28px">{% icon 'x' 'i-sm' %}</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

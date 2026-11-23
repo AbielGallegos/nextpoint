@@ -1,0 +1,62 @@
+{% extends "layouts/panel.html" %}{% load np humanize %}
+{% block title %}Resumen{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">{% icon 'layout-dashboard' 'i-sm' %} Panel administrativo</div><h1>Buen día, {{ user.first_name }}</h1>
+  <p>Cifras calculadas con los registros de tu alcance. Cada tarjeta usa los mismos filtros que su lista de detalle.</p></div>
+  <span class="updated">{% icon 'refresh-cw' 'i-sm' %} Actualizado {{ now|date:"d/m/Y H:i" }} h</span>
+</div>
+
+{% if cases %}
+<div class="grid g-4 kpi-grid">
+  <a class="card card-link kpi" href="{% url 'cases:queue' %}?estado=pendientes"><span class="kpi-icon t-info">{% icon 'inbox' %}</span><div><div class="kpi-value">{{ cases.new }}</div><div class="kpi-label">Casos por atender</div></div></a>
+  <a class="card card-link kpi" href="{% url 'cases:queue' %}?estado=en_atencion"><span class="kpi-icon">{% icon 'mail' %}</span><div><div class="kpi-value">{{ cases.in_attention }}</div><div class="kpi-label">Con acuse / en atención</div></div></a>
+  <a class="card card-link kpi" href="{% url 'cases:queue' %}?estado=resueltos"><span class="kpi-icon t-ok">{% icon 'check-circle-2' %}</span><div><div class="kpi-value">{{ cases.resolved }}</div><div class="kpi-label">Resueltos o cerrados</div></div></a>
+  <div class="card kpi"><span class="kpi-icon t-accent">{% icon 'clock' %}</span><div><div class="kpi-value">{% if cases.ack_rate is not None %}{{ cases.ack_rate }} %{% else %}—{% endif %}</div><div class="kpi-label">Primer acuse en meta{% if cases.ack_rate is None %} · sin datos{% endif %}</div></div></div>
+</div>
+{% endif %}
+{% if loans %}
+<div class="grid g-4 kpi-grid mt-2">
+  <a class="card card-link kpi" href="{% url 'loans:queue' %}?estado=pendientes"><span class="kpi-icon t-info">{% icon 'send' %}</span><div><div class="kpi-value">{{ loans.pending }}</div><div class="kpi-label">Préstamos por revisar</div></div></a>
+  <a class="card card-link kpi" href="{% url 'loans:queue' %}?estado=aprobados"><span class="kpi-icon">{% icon 'check' %}</span><div><div class="kpi-value">{{ loans.approved_waiting }}</div><div class="kpi-label">Aprobados por entregar</div></div></a>
+  <a class="card card-link kpi" href="{% url 'loans:queue' %}?estado=activos"><span class="kpi-icon t-accent">{% icon 'package' %}</span><div><div class="kpi-value">{{ loans.active }}</div><div class="kpi-label">Préstamos activos</div></div></a>
+  <a class="card card-link kpi" href="{% url 'loans:queue' %}?estado=vencidos"><span class="kpi-icon t-danger">{% icon 'alert-triangle' %}</span><div><div class="kpi-value">{{ loans.overdue }}</div><div class="kpi-label">Préstamos vencidos</div></div></a>
+</div>
+{% endif %}
+
+<div class="grid g-main mt-3">
+  <div class="stack">
+    {% if work_queue is not None %}
+    <section class="card"><div class="card-head"><h2>Cola de trabajo</h2><a class="small" href="{% url 'cases:queue' %}">Abrir bandeja</a></div>
+      {% if work_queue %}<ul class="list">{% for c in work_queue %}
+        <li><a class="list-item" href="{% url 'cases:manage_detail' c.pk %}"><span class="list-icon">{% icon 'clipboard-list' %}</span>
+          <div class="list-main"><div class="list-title"><span class="mono">{{ c.folio }}</span> · {{ c.subject }}</div><div class="list-meta">{{ c.area }} · {{ c.created_at|naturaltime }}{% if c.assigned_to %} · {{ c.assigned_to }}{% endif %}</div></div>{% status c %}</a></li>{% endfor %}</ul>
+      {% else %}<div class="empty"><div class="empty-icon">{% icon 'check-circle-2' 'i-lg' %}</div><h3>Sin casos pendientes</h3><p class="small">No hay casos abiertos en tu alcance.</p></div>{% endif %}
+    </section>{% endif %}
+    {% if loan_queue is not None %}
+    <section class="card"><div class="card-head"><h2>Préstamos por decidir o entregar</h2><a class="small" href="{% url 'loans:queue' %}">Abrir cola</a></div>
+      {% if loan_queue %}<ul class="list">{% for l in loan_queue %}
+        <li><a class="list-item" href="{% url 'loans:manage_detail' l.pk %}"><span class="list-icon">{% icon 'package' %}</span><div class="list-main"><div class="list-title"><span class="mono">{{ l.folio }}</span> · {{ l.resource.name }}</div><div class="list-meta">{{ l.start_date|date:"d/m" }} – {{ l.due_date|date:"d/m" }}</div></div>{% status l %}</a></li>{% endfor %}</ul>
+      {% else %}<div class="empty" style="padding:1.5rem"><p class="small mb-0">Sin solicitudes de préstamo pendientes.</p></div>{% endif %}
+    </section>{% endif %}
+    {% if courses_review %}<section class="card"><div class="card-head"><h2>Cursos esperando revisión</h2></div><ul class="list">{% for c in courses_review %}<li><a class="list-item" href="{% url 'learning:manage_detail' c.pk %}"><span class="list-icon">{% icon 'graduation-cap' %}</span><div class="list-main"><div class="list-title">{{ c.title }}</div><div class="list-meta">{{ c.author }}</div></div>{% status c %}</a></li>{% endfor %}</ul></section>{% endif %}
+    {% if my_courses %}<section class="card"><div class="card-head"><h2>Mis cursos</h2><a class="small" href="{% url 'learning:manage_new' %}">Nuevo curso</a></div><ul class="list">{% for c in my_courses %}<li><a class="list-item" href="{% url 'learning:manage_detail' c.pk %}"><span class="list-icon">{% icon 'book-open' %}</span><div class="list-main"><div class="list-title">{{ c.title }}</div></div>{% status c %}</a></li>{% endfor %}</ul></section>{% endif %}
+    {% if users_total is not None %}
+    <div class="grid g-3 kpi-grid">
+      <a class="card card-link kpi" href="{% url 'accounts:users' %}"><span class="kpi-icon">{% icon 'users' %}</span><div><div class="kpi-value">{{ users_total }}</div><div class="kpi-label">Cuentas</div></div></a>
+      <a class="card card-link kpi" href="{% url 'accounts:users' %}?estado=suspendido"><span class="kpi-icon t-danger">{% icon 'ban' %}</span><div><div class="kpi-value">{{ users_suspended }}</div><div class="kpi-label">Suspendidas</div></div></a>
+      <a class="card card-link kpi" href="{% url 'reporting:audit' %}?tipo=seguridad"><span class="kpi-icon t-info">{% icon 'shield-check' %}</span><div><div class="kpi-value">{{ security_events }}</div><div class="kpi-label">Eventos de seguridad (7 días)</div></div></a>
+    </div>{% endif %}
+  </div>
+  <aside class="stack">
+    {% if overdue %}<section class="card" style="border-color:#f3b7c1"><div class="card-head"><h2 style="font-size:1rem">{% icon 'alert-triangle' %} Vencidos</h2></div><ul class="list">{% for l in overdue %}<li><a class="list-item" href="{% url 'loans:manage_detail' l.pk %}"><div class="list-main"><div class="list-title mono">{{ l.folio }}</div><div class="list-meta">{{ l.resource.name }} · venció {{ l.due_date|date:"d/m" }}</div></div></a></li>{% endfor %}</ul><div class="card-foot small muted">Se registra y notifica; no genera cobros.</div></section>{% endif %}
+    {% if due_soon %}<section class="card"><div class="card-head"><h2 style="font-size:1rem">Vencen en 3 días</h2></div><ul class="list">{% for l in due_soon %}<li><a class="list-item" href="{% url 'loans:manage_detail' l.pk %}"><div class="list-main"><div class="list-title mono">{{ l.folio }}</div><div class="list-meta">{{ l.resource.name }} · {{ l.due_date|date:"d/m" }}</div></div></a></li>{% endfor %}</ul></section>{% endif %}
+    {% if inventory %}<section class="card card-pad"><h2 style="font-size:1rem">Inventario</h2>
+      <dl class="dl" style="grid-template-columns:1fr auto"><dt>Recursos publicados</dt><dd><strong>{{ inventory.published }}</strong> / {{ inventory.resources }}</dd><dt>Ejemplares disponibles</dt><dd><strong>{{ inventory.available }}</strong> / {{ inventory.units }}</dd><dt>Prestados</dt><dd><strong>{{ inventory.on_loan }}</strong></dd><dt>Fuera de servicio</dt><dd><strong>{{ inventory.out_of_service }}</strong></dd></dl>
+      {% if perms_np.catalog_manage %}<a class="btn btn-sm mt-2" href="{% url 'catalog:manage_list' %}">Gestionar inventario</a>{% endif %}</section>{% endif %}
+    {% if alerts_draft is not None %}<section class="card card-pad"><h2 style="font-size:1rem">Avisos</h2><p class="mb-0"><strong>{{ alerts_live }}</strong> vigente{{ alerts_live|pluralize }} · <strong>{{ alerts_draft }}</strong> borrador{{ alerts_draft|pluralize:"es" }}</p><a class="btn btn-sm mt-2" href="{% url 'communications:manage_alerts' %}">Abrir editor</a></section>{% endif %}
+    {% if courses %}<section class="card card-pad"><h2 style="font-size:1rem">Formación</h2><p class="small mb-0">{{ courses.published }} publicado{{ courses.published|pluralize }} · {{ courses.in_review }} en revisión · {{ courses.enrollments }} inscripción{{ courses.enrollments|pluralize:"es" }}{% if courses.avg_progress is not None %} · avance medio {{ courses.avg_progress }} %{% endif %}</p></section>{% endif %}
+    {% if tickets_open is not None %}<section class="card card-pad"><h2 style="font-size:1rem">Soporte técnico</h2><p class="mb-0"><strong>{{ tickets_open }}</strong> ticket{{ tickets_open|pluralize }} abierto{{ tickets_open|pluralize }}</p><a class="btn btn-sm mt-2" href="{% url 'core:support_queue' %}">Ver tickets</a></section>{% endif %}
+  </aside>
+</div>
+{% endblock %}

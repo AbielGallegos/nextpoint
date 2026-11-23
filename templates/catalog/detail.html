@@ -1,0 +1,38 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}{{ r.name }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'catalog:list' %}">Materiales</a>{% icon 'chevron-right' 'i-sm' %}<a href="{% url 'catalog:list' %}?categoria={{ r.category.slug }}">{{ r.category.name }}</a>{% icon 'chevron-right' 'i-sm' %}<span>{{ r.name }}</span></nav>
+<div class="grid g-main">
+  <article class="card">
+    <div class="resource-card"><div class="thumb" style="height:150px">{% icon r.category.icon %}</div></div>
+    <div class="card-body">
+      <div class="cluster"><span class="tag mono">{{ r.code }}</span><span class="badge t-{{ av.tone }}">{{ av.label }}</span></div>
+      <h1 class="mt-1">{{ r.name }}</h1>
+      <p>{{ r.description }}</p>
+      <dl class="dl mt-2">
+        <dt>Área responsable</dt><dd>{{ r.area.name }}</dd>
+        <dt>Ubicación general</dt><dd>{{ r.location.public_hint|default:"Consultar con el área" }}</dd>
+        <dt>Requisitos</dt><dd>{{ r.requirements|default:"Sin requisitos adicionales" }}</dd>
+        <dt>Política de préstamo</dt><dd>{{ r.loan_policy|default:"Según política del campus" }}</dd>
+        <dt>Etiquetas</dt><dd>{% tags_list r.tags %}</dd>
+      </dl>
+    </div>
+  </article>
+  <aside class="stack">
+    <div class="card card-pad">
+      <h2 style="font-size:1rem">Disponibilidad hoy</h2>
+      <div class="cluster" style="align-items:baseline"><span class="kpi-value">{{ av.available }}</span><span class="muted">de {{ av.operable }} ejemplar{{ av.operable|pluralize:"es" }} en servicio</span></div>
+      <p class="small muted">Calculada en el servidor con ejemplares y apartados vigentes. Se vuelve a validar al aprobar.</p>
+      {% if open_mine %}
+        <div class="notice t-info">{% icon 'info' %}<div>Ya tienes la solicitud <a href="{% url 'loans:my_detail' open_mine.pk %}"><strong>{{ open_mine.folio }}</strong></a> ({{ open_mine.get_status_display|lower }}).</div></div>
+      {% elif av.operable %}
+        <a class="btn btn-primary btn-lg w-full" href="{% url 'loans:request' r.pk %}">{% icon 'send' %} Solicitar préstamo</a>
+        {% if not av.available %}<p class="small muted mt-1 mb-0">Sin ejemplares libres hoy: puedes pedirlo para otras fechas; el área confirmará disponibilidad.</p>{% endif %}
+      {% else %}
+        <div class="notice t-warn">{% icon 'alert-triangle' %}<div>Este material no tiene ejemplares en servicio. <a href="{% url 'smartmatch:home' %}?category=materiales&tags={{ r.tags|join:',' }}">Ver alternativas</a></div></div>
+      {% endif %}
+    </div>
+    <div class="card card-pad small muted">{% icon 'shield-check' %} Una recomendación o una solicitud nunca equivalen a aprobación automática.</div>
+  </aside>
+</div>
+{% endblock %}

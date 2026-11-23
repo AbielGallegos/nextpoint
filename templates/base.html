@@ -1,0 +1,20 @@
+{% load static np %}<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}NextPoint{% endblock %} · NextPoint</title>
+  <meta name="description" content="NextPoint: recursos educativos, solicitudes institucionales, préstamos de materiales y oportunidades académicas en un solo lugar.">
+  <meta name="theme-color" content="#171b40">
+  <link rel="icon" type="image/png" href="{% static 'img/nextpoint-icon.png' %}">
+  <link rel="preload" href="{% static 'fonts/inter-latin.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{% static 'css/nextpoint.css' %}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  {% include "partials/icons.svg" %}
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  {% block body %}{% endblock %}
+  {% include "partials/messages.html" %}
+  <script src="{% static 'js/app.js' %}" defer></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{% extends base %}{% load np %}
+{% block title %}Ayuda y soporte{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'life-buoy' 'i-sm' %} Ayuda</div><h1>Ayuda y soporte técnico</h1><p>Para problemas de cuenta o navegación. Para préstamos o servicios escolares usa <a href="{% url 'cases:new' %}">Solicitudes</a>.</p></div>
+  <a class="btn" href="{% url 'core:help' %}">{% icon 'circle-help' %} Preguntas frecuentes</a></div>
+<div class="grid g-main">
+  <section class="card"><div class="card-head"><h2>Mis tickets</h2></div>
+    <ul class="list">{% for t in tickets %}<li><a class="list-item" href="{% url 'core:support_detail' t.pk %}"><span class="list-icon">{% icon 'life-buoy' %}</span><div class="list-main"><div class="list-title"><span class="mono">{{ t.folio }}</span> · {{ t.subject }}</div><div class="list-meta">{{ t.get_category_display }} · {{ t.created_at|date:"d/m/Y H:i" }}</div></div>{% status t %}</a></li>
+    {% empty %}<li><div class="empty"><div class="empty-icon">{% icon 'life-buoy' 'i-lg' %}</div><h3>Sin tickets</h3><p class="small">Si algo no funciona, cuéntanos.</p></div></li>{% endfor %}</ul></section>
+  <form class="card card-pad" method="post" novalidate>{% csrf_token %}
+    <h2 style="font-size:1rem">Nuevo ticket técnico</h2>
+    {% if errors %}<div class="error-summary" role="alert">Revisa los campos marcados.</div>{% endif %}
+    <div class="field{% if errors.category %} has-error{% endif %}"><label class="label" for="t-cat">Categoría <span class="req">*</span></label><select class="select" id="t-cat" name="category"><option value="">Selecciona…</option>{% for v,l in categories %}<option value="{{ v }}" {% if data.category == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>{% if errors.category %}<span class="error-text">{{ errors.category }}</span>{% endif %}</div>
+    <div class="field{% if errors.subject %} has-error{% endif %}"><label class="label" for="t-sub">Asunto <span class="req">*</span></label><input class="input" id="t-sub" name="subject" maxlength="140" value="{{ data.subject }}">{% if errors.subject %}<span class="error-text">{{ errors.subject }}</span>{% endif %}</div>
+    <div class="field{% if errors.description %} has-error{% endif %}"><label class="label" for="t-desc">Descripción <span class="req">*</span></label><span class="help">Nunca escribas tu contraseña.</span><textarea class="textarea" id="t-desc" name="description" maxlength="2000">{{ data.description }}</textarea>{% if errors.description %}<span class="error-text">{{ errors.description }}</span>{% endif %}</div>
+    <div class="form-actions"><button class="btn btn-primary" type="submit">Enviar ticket</button></div>
+  </form>
+</div>
+{% endblock %}

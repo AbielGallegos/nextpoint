@@ -1,0 +1,86 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}{{ req.folio }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'cases:queue' %}">Solicitudes</a>{% icon 'chevron-right' 'i-sm' %}<span class="mono">{{ req.folio }}</span></nav>
+<div class="page-head">
+  <div><div class="cluster"><span class="tag mono">{{ req.folio }}</span>{% status req %}{% badge req.priority req.get_priority_display %}</div>
+  <h1 class="mt-1">{{ req.subject }}</h1><p>{{ req.category }} · {{ req.area }} · creado el {{ req.created_at|date:"d/m/Y H:i" }}</p></div>
+</div>
+<div class="card card-pad">{% include "loans/_steps.html" %}</div>
+{% if not can_attend %}<div class="notice t-info mt-2">{% icon 'eye' %}<div>Vista de supervisión (solo lectura).{% if req.creator_id == user.pk %} No puedes atender un caso propio.{% endif %}</div></div>{% endif %}
+<div class="grid g-main mt-2">
+  <div class="stack">
+    <section class="card"><div class="card-head"><h2>Descripción del estudiante</h2></div>
+      <div class="card-body"><p class="tl-body" style="margin:0">{{ req.description }}</p>
+      {% for a in attachments %}<a class="btn btn-sm mt-1" href="{% url 'cases:attachment' a.pk %}">{% icon 'paperclip' 'i-sm' %} {{ a.original_name }} ({{ a.size|filesizeformat }})</a>{% endfor %}</div></section>
+
+    {% if can_attend and allowed %}
+    <section class="card" aria-labelledby="h-act"><div class="card-head"><h2 id="h-act">Acciones rápidas</h2><span class="small muted">Transiciones válidas para «{{ req.get_status_display }}»</span></div>
+      <div class="card-body cluster">
+        {% if 'acknowledge' in allowed %}<form method="post" action="{% url 'cases:manage_action' req.pk 'acknowledge' %}">{% csrf_token %}<button class="btn btn-primary" type="submit">{% icon 'mail' %} Acusar recibo</button></form>{% endif %}
+        {% if 'start' in allowed %}<form method="post" action="{% url 'cases:manage_action' req.pk 'start' %}">{% csrf_token %}<button class="btn" type="submit">{% icon 'refresh-cw' %} Pasar a «En proceso»</button></form>{% endif %}
+        {% if 'request_info' in allowed %}<button class="btn" data-confirm-dialog="dlg-info">{% icon 'circle-help' %} Pedir información</button>{% endif %}
+        {% if 'resolve' in allowed %}<button class="btn btn-primary" data-confirm-dialog="dlg-resolve">{% icon 'check-circle-2' %} Resolver</button>{% endif %}
+        {% if 'close' in allowed %}<form method="post" action="{% url 'cases:manage_action' req.pk 'close' %}">{% csrf_token %}<button class="btn" type="submit">{% icon 'lock' %} Cerrar caso</button></form>{% endif %}
+        {% if 'reject' in allowed %}<button class="btn btn-danger" data-confirm-dialog="dlg-reject">{% icon 'ban' %} Rechazar</button>{% endif %}
+      </div>
+      {% if 'acknowledge' in allowed %}<div class="card-foot small muted">{% icon 'info' 'i-sm' %} Meta propuesta de primer acuse: {{ target_days }} días hábiles. El acuse no resuelve el caso.</div>{% endif %}
+    </section>
+    {% endif %}
+
+    <section class="card"><div class="card-head"><h2>Historial completo</h2><span class="small muted">Incluye notas internas</span></div>
+      <div class="card-body">{% include "cases/_timeline.html" with staff_view=True %}</div>
+      {% if can_attend and req.status not in 'cerrado rechazado cancelado' %}
+      <form class="card-foot" method="post" action="{% url 'cases:manage_action' req.pk 'reply' %}">{% csrf_token %}
+        <label class="label" for="reply">Responder</label>
+        <textarea class="textarea mt-1" id="reply" name="body" maxlength="2000" style="min-height:80px" required></textarea>
+        <div class="form-actions" style="margin-top:.6rem">
+          <button class="btn" type="submit" formaction="{% url 'cases:manage_action' req.pk 'note' %}">{% icon 'lock' %} Guardar como nota interna</button>
+          <button class="btn btn-primary" type="submit">{% icon 'send' %} Responder al estudiante</button>
+        </div>
+      </form>{% endif %}
+    </section>
+  </div>
+  <aside class="stack">
+    <div class="card card-pad"><h2 style="font-size:1rem">Ficha del caso</h2>
+      <dl class="dl" style="grid-template-columns:110px 1fr">
+        <dt>Solicitante</dt><dd>{{ req.creator.display_name }}<div class="small subtle mono">{{ req.creator.masked_email }}</div></dd>
+        <dt>Responsable</dt><dd>{{ req.assigned_to|default:"Sin asignar" }}</dd>
+        <dt>Acuse</dt><dd>{{ req.acknowledged_at|date:"d/m/Y H:i"|default:"Pendiente" }}</dd>
+        <dt>Resuelto</dt><dd>{{ req.resolved_at|date:"d/m/Y H:i"|default:"—" }}</dd>
+        <dt>Cerrado</dt><dd>{{ req.closed_at|date:"d/m/Y H:i"|default:"—" }}</dd>
+        {% if req.rating %}<dt>Valoración</dt><dd>{{ req.rating }}/5</dd>{% endif %}
+      </dl></div>
+    {% if can_manage and req.status not in 'resuelto cerrado rechazado cancelado' %}
+    <form class="card card-pad" method="post" action="{% url 'cases:manage_action' req.pk 'assign' %}">{% csrf_token %}
+      <h2 style="font-size:1rem">Asignar responsable</h2>
+      <div class="field"><label class="label" for="as">Persona</label><select class="select" id="as" name="assignee" required><option value="">Selecciona…</option>{% for u in candidates %}<option value="{{ u.pk }}" {% if req.assigned_to_id == u.pk %}selected{% endif %}>{{ u.display_name }}</option>{% endfor %}</select></div>
+      <div class="form-actions"><button class="btn btn-sm" type="submit">{% icon 'user' %} Asignar</button></div>
+    </form>
+    {% endif %}
+    {% if can_manage and 'classify' in allowed %}
+    <form class="card card-pad" method="post" action="{% url 'cases:manage_action' req.pk 'classify' %}">{% csrf_token %}
+      <h2 style="font-size:1rem">Clasificar</h2>
+      <div class="field"><label class="label" for="cl-c">Categoría</label><select class="select" id="cl-c" name="category">{% for c in categories %}<option value="{{ c.pk }}" {% if c.pk == req.category_id %}selected{% endif %}>{{ c.name }} · {{ c.area.code }}</option>{% endfor %}</select></div>
+      <div class="field"><label class="label" for="cl-p">Prioridad</label><select class="select" id="cl-p" name="priority">{% for v,l in priorities %}<option value="{{ v }}" {% if v == req.priority %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+      <p class="help">Cambiar a una categoría de otra área transfiere el caso (escalamiento).</p>
+      <div class="form-actions"><button class="btn btn-sm" type="submit">{% icon 'tag' %} Clasificar</button></div>
+    </form>
+    {% endif %}
+  </aside>
+</div>
+{% if can_attend %}
+<dialog class="modal" id="dlg-resolve" aria-labelledby="dr-t"><form method="post" action="{% url 'cases:manage_action' req.pk 'resolve' %}">{% csrf_token %}
+  <div class="modal-head"><h2 id="dr-t">Resolver {{ req.folio }}</h2></div>
+  <div class="modal-body"><p class="small muted">El estudiante verá esta resolución y podrá confirmarla o pedir revisión.</p><div class="field"><label class="label" for="res">Resolución <span class="req">*</span></label><textarea class="textarea" id="res" name="body" required minlength="10" maxlength="2000"></textarea></div></div>
+  <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Volver</button><button class="btn btn-primary" type="submit">Marcar como resuelto</button></div></form></dialog>
+<dialog class="modal" id="dlg-info" aria-labelledby="di-t"><form method="post" action="{% url 'cases:manage_action' req.pk 'request_info' %}">{% csrf_token %}
+  <div class="modal-head"><h2 id="di-t">Pedir información</h2></div>
+  <div class="modal-body"><div class="field"><label class="label" for="inf">¿Qué necesitas saber? <span class="req">*</span></label><textarea class="textarea" id="inf" name="body" required minlength="5" maxlength="2000"></textarea></div></div>
+  <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Volver</button><button class="btn btn-primary" type="submit">Enviar</button></div></form></dialog>
+<dialog class="modal" id="dlg-reject" aria-labelledby="dj-t"><form method="post" action="{% url 'cases:manage_action' req.pk 'reject' %}">{% csrf_token %}
+  <div class="modal-head"><h2 id="dj-t">Rechazar {{ req.folio }}</h2></div>
+  <div class="modal-body"><div class="field"><label class="label" for="rjr">Motivo (visible al estudiante) <span class="req">*</span></label><textarea class="textarea" id="rjr" name="body" required minlength="5" maxlength="2000"></textarea></div></div>
+  <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Volver</button><button class="btn btn-solid-danger" type="submit">Rechazar</button></div></form></dialog>
+{% endif %}
+{% endblock %}

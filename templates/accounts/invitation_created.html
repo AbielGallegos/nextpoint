@@ -1,0 +1,12 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}Invitación creada{% endblock %}
+{% block content %}
+<div class="card card-pad" style="max-width:760px">
+  <div class="empty-icon" style="margin:0 0 1rem;background:var(--ok-100);color:var(--ok-700)">{% icon 'check-circle-2' 'i-lg' %}</div>
+  <h1>Invitación creada</h1>
+  <p class="muted">Para <strong>{{ inv.display_name }}</strong> como <strong>{{ inv.role.name }}</strong>{% if inv.area %} en {{ inv.area }}{% endif %}. Vence el {{ inv.expires_at|date:"d/m/Y H:i" }}.</p>
+  <div class="notice t-warn mt-2">{% icon 'alert-triangle' %}<div><strong>Este enlace se muestra una sola vez.</strong> El prototipo no envía correos externos: entrégalo por un canal seguro. Solo se guarda un hash del token.</div></div>
+  <div class="field mt-2"><label class="label" for="inv-link">Enlace de activación</label><input class="input mono" id="inv-link" value="{{ link }}" readonly></div>
+  <div class="form-actions"><a class="btn btn-primary" href="{% url 'accounts:users' %}">Volver a usuarios</a></div>
+</div>
+{% endblock %}

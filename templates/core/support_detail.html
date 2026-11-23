@@ -1,0 +1,23 @@
+{% extends base %}{% load np %}
+{% block title %}{{ ticket.folio }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta">{% if is_agent %}<a href="{% url 'core:support_queue' %}">Tickets</a>{% else %}<a href="{% url 'core:support_mine' %}">Ayuda</a>{% endif %}{% icon 'chevron-right' 'i-sm' %}<span class="mono">{{ ticket.folio }}</span></nav>
+<div class="page-head"><div><div class="cluster"><span class="tag mono">{{ ticket.folio }}</span>{% status ticket %}</div><h1 class="mt-1">{{ ticket.subject }}</h1><p>{{ ticket.get_category_display }} · {{ ticket.created_at|date:"d/m/Y H:i" }}{% if is_agent %} · {{ ticket.owner }}{% endif %}</p></div>
+  <div class="cluster">{% if is_agent and ticket.status == 'nuevo' %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="take"><button class="btn btn-primary" type="submit">Tomar ticket</button></form>{% endif %}
+  {% if ticket.status == 'resuelto' %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="close"><button class="btn" type="submit">Cerrar ticket</button></form>{% endif %}</div></div>
+<div class="grid g-main">
+  <section class="card"><div class="card-head"><h2>Conversación</h2></div>
+    <div class="card-body"><ol class="timeline">
+      <li class="tl-item is-message"><span class="tl-dot">{% icon 'message-square' %}</span><div class="tl-head"><strong>Descripción</strong><span class="muted">{{ ticket.created_at|date:"d/m H:i" }}</span></div><div class="tl-body">{{ ticket.description }}</div></li>
+      {% for m in msgs %}<li class="tl-item {% if m.internal %}is-internal{% else %}is-message{% endif %}"><span class="tl-dot">{% if m.internal %}{% icon 'lock' %}{% else %}{% icon 'message-square' %}{% endif %}</span><div class="tl-head"><strong>{% if m.author_id == ticket.owner_id %}Solicitante{% else %}Soporte{% endif %}</strong>{% if m.internal %}<span class="badge t-warn">Interna</span>{% endif %}<span class="muted">{{ m.created_at|date:"d/m H:i" }}</span></div><div class="tl-body">{{ m.body }}</div></li>{% endfor %}
+    </ol></div>
+    {% if ticket.status != 'cerrado' %}<form class="card-foot" method="post">{% csrf_token %}<input type="hidden" name="action" value="message">
+      <label class="label" for="m">Mensaje</label><textarea class="textarea mt-1" id="m" name="body" maxlength="2000" style="min-height:80px" required></textarea>
+      <div class="form-actions" style="margin-top:.6rem">{% if is_agent %}<label class="check" style="margin-right:auto"><input type="checkbox" name="internal" value="1"> Nota interna</label>{% endif %}<button class="btn btn-primary" type="submit">Enviar</button></div></form>{% endif %}
+  </section>
+  <aside class="stack">
+    {% if is_agent and ticket.status in 'asignado atendiendo' %}<form class="card card-pad" method="post">{% csrf_token %}<input type="hidden" name="action" value="resolve"><h2 style="font-size:1rem">Resolver</h2><div class="field"><label class="label" for="rs">Resultado visible <span class="req">*</span></label><textarea class="textarea" id="rs" name="body" required minlength="5"></textarea></div><div class="form-actions"><button class="btn btn-primary btn-sm" type="submit">Marcar resuelto</button></div></form>{% endif %}
+    {% if ticket.result %}<div class="card card-pad"><h2 style="font-size:1rem">Resultado</h2><p class="mb-0">{{ ticket.result }}</p></div>{% endif %}
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}Cursos{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'graduation-cap' 'i-sm' %} Contenido</div><h1>Cursos y publicaciones</h1><p>Instructores preparan borradores; el gestor del área los valida antes de publicarlos.</p></div>
+  {% if can_author %}<a class="btn btn-primary" href="{% url 'learning:manage_new' %}">{% icon 'plus' %} Nuevo curso</a>{% endif %}</div>
+{% if review_count %}<div class="notice t-warn mb-0" style="margin-bottom:1rem">{% icon 'clock' %}<div><strong>{{ review_count }} curso{{ review_count|pluralize }} en revisión</strong> espera{{ review_count|pluralize:"n" }} tu decisión. <a href="?estado=en_revision">Ver</a></div></div>{% endif %}
+<div class="chips mt-1"><a class="chip {% if not status %}is-active{% endif %}" href="?">Todos</a>{% for v,l in statuses %}<a class="chip {% if status == v %}is-active{% endif %}" href="?estado={{ v }}">{{ l }}</a>{% endfor %}</div>
+<div class="card mt-2"><div class="table-wrap"><table class="table responsive">
+  <thead><tr><th>Curso</th><th>Autor</th><th>Área</th><th>Lecciones</th><th>Inscripciones</th><th>Estado</th></tr></thead>
+  <tbody>{% for c in courses %}
+    <tr><td class="cell-main"><a class="row-link" href="{% url 'learning:manage_detail' c.pk %}">{{ c.title }}</a></td><td data-label="Autor">{{ c.author }}</td><td data-label="Área">{{ c.area }}</td>
+    <td data-label="Lecciones">{{ c.nlessons }}</td><td data-label="Inscripciones">{{ c.nenroll }}</td><td data-label="Estado">{% status c %}</td></tr>
+  {% empty %}<tr><td colspan="6"><div class="empty"><div class="empty-icon">{% icon 'graduation-cap' 'i-lg' %}</div><h3>Sin cursos en esta vista</h3></div></td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% endblock %}

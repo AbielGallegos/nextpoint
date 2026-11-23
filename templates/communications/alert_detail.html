@@ -1,0 +1,18 @@
+{% extends base %}{% load np %}
+{% block title %}{{ a.title }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'communications:alerts' %}">Avisos</a>{% icon 'chevron-right' 'i-sm' %}<span>{{ a.title|truncatechars:40 }}</span></nav>
+<article class="card" style="max-width:860px">
+  <div class="card-body">
+    <div class="cluster"><span class="badge t-brand">{{ a.get_category_display }}</span>{% if a.priority != 'normal' %}{% badge a.priority a.get_priority_display %}{% endif %}{% if is_read %}<span class="badge t-off">{% icon 'check' %}Leído</span>{% endif %}</div>
+    <h1 class="mt-1">{{ a.title }}</h1>
+    <p class="lead muted">{{ a.summary }}</p>
+    <div class="lesson-body">{{ a.body|paragraphs }}</div>
+    {% if a.source_url %}<p class="mt-2"><a href="{{ a.source_url }}" target="_blank" rel="noopener noreferrer nofollow">{% icon 'external-link' 'i-sm' %} Abrir fuente externa</a> <span class="small subtle">(sitio externo a NextPoint)</span></p>{% endif %}
+  </div>
+  <div class="card-foot cluster between">
+    <span class="small muted">Emite: {% if a.area %}{{ a.area }}{% else %}Coordinación · {{ a.campus|default:"institución" }}{% endif %} · publicado {{ a.published_at|date:"d/m/Y" }}{% if a.expires_at %} · vigente hasta {{ a.expires_at|date:"d/m/Y H:i" }}{% endif %}</span>
+    {% if not is_read %}<form method="post" action="{% url 'communications:alert_read' a.pk %}">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">{% icon 'check' %} Marcar como leído</button></form>{% endif %}
+  </div>
+</article>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "layouts/public.html" %}{% load np %}
+{% block title %}Recursos, solicitudes y oportunidades educativas{% endblock %}
+{% block content %}
+<section class="pub-hero">
+  <div class="pub-wrap hero-grid">
+    <div>
+      <div class="eyebrow">{% icon 'sparkles' 'i-sm' %} Prototipo funcional · piloto propuesto</div>
+      <h1>Del <em>“¿a quién le pregunto?”</em> a una solicitud con folio y seguimiento.</h1>
+      <p class="lead">NextPoint centraliza materiales, préstamos, solicitudes institucionales, cursos y oportunidades. El estudiante encuentra lo que necesita; el personal atiende con control, trazabilidad y métricas reales.</p>
+      <div class="cluster mt-2">
+        <a class="btn btn-primary btn-lg" href="{% url 'accounts:login' %}">Entrar al prototipo {% icon 'arrow-right' %}</a>
+        <a class="btn btn-lg" href="#modulos">Conocer los módulos</a>
+      </div>
+      <p class="small subtle mt-2">Datos 100 % sintéticos. NextPoint complementa —no sustituye— los sistemas oficiales de la institución.</p>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="mock">
+        <div class="cluster between"><strong>SmartMatch</strong><span class="badge t-ok">{% icon 'check-circle-2' %}Disponible</span></div>
+        <div class="mock-row"><div class="score-ring" style="--v:95;width:52px;height:52px"><b style="font-size:.9rem">95</b></div>
+          <div><strong>Kit de redes de laboratorio</strong><div class="small muted">Recomendado porque coincide con tu necesidad de «redes», pertenece a tu campus y cuenta con disponibilidad.</div></div></div>
+        <div class="mock-row"><span class="list-icon" style="background:var(--brand-50);color:var(--brand-600)">{% icon 'clipboard-list' %}</span>
+          <div style="flex:1"><strong>NP-PRE-00042</strong><div class="small muted">Préstamo · aprobado por Laboratorio</div></div>{% badge 'aprobado' 'Aprobado' %}</div>
+        <div class="mock-row"><span class="list-icon" style="background:var(--accent-100);color:var(--accent-600)">{% icon 'graduation-cap' %}</span>
+          <div style="flex:1"><strong>Introducción a redes</strong><div class="progress mt-1"><span style="width:50%"></span></div></div><span class="small muted">50 %</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pub-section alt" id="modulos">
+  <div class="pub-wrap">
+    <div class="eyebrow">Cinco módulos troncales</div>
+    <h2 style="font-size:1.8rem;max-width:30ch">Un proceso completo, no veinte pantallas sueltas</h2>
+    <div class="grid g-3 mt-3">
+      <div class="card feature"><div class="kpi-icon">{% icon 'sparkles' %}</div><h3>SmartMatch explicable</h3><p class="muted mb-0">Recomendador determinista: categoría, etiquetas, campus, disponibilidad y vigencia. Cada resultado dice por qué aparece.</p></div>
+      <div class="card feature"><div class="kpi-icon t-accent">{% icon 'package' %}</div><h3>Materiales y préstamos</h3><p class="muted mb-0">Catálogo con disponibilidad real, folio único, aprobación transaccional, entrega y devolución con historial.</p></div>
+      <div class="card feature"><div class="kpi-icon t-info">{% icon 'clipboard-list' %}</div><h3>Solicitudes e incidencias</h3><p class="muted mb-0">Acuse de recibo distinto de la resolución, notas internas protegidas y línea de tiempo para el estudiante.</p></div>
+      <div class="card feature"><div class="kpi-icon t-ok">{% icon 'graduation-cap' %}</div><h3>Cursos y tutoriales</h3><p class="muted mb-0">Contenidos revisados antes de publicarse, inscripción gratuita y progreso por lección.</p></div>
+      <div class="card feature"><div class="kpi-icon t-danger">{% icon 'megaphone' %}</div><h3>Avisos y oportunidades</h3><p class="muted mb-0">Audiencia por campus y rol, vigencia automática y lectura individual sin listas públicas.</p></div>
+      <div class="card feature"><div class="kpi-icon">{% icon 'shield-check' %}</div><h3>Gobierno y auditoría</h3><p class="muted mb-0">Permisos por rol y alcance verificados en servidor, KPIs calculados con datos y bitácora de cambios.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="pub-section">
+  <div class="pub-wrap grid g-2" style="align-items:center;gap:3rem">
+    <div>
+      <div class="eyebrow">Dos experiencias, una sola fuente de verdad</div>
+      <h2 style="font-size:1.6rem">El estudiante solicita. El área atiende. Ambos ven el mismo estado.</h2>
+      <p class="muted">El portal del estudiante prioriza la orientación y el autoservicio. El panel administrativo es un puesto de trabajo: colas, filtros, acciones rápidas, inventario y métricas acotadas a su área.</p>
+      <ul class="stack" style="--gap:.5rem;list-style:none;padding:0">
+        <li class="cluster">{% icon 'check-circle-2' %} Sin datos sensibles: no pedimos CURP, domicilio ni documentos.</li>
+        <li class="cluster">{% icon 'check-circle-2' %} Sin pagos reales ni certificados oficiales.</li>
+        <li class="cluster">{% icon 'check-circle-2' %} Funciona sin internet externo para la demostración.</li>
+      </ul>
+    </div>
+    <div class="card card-pad">
+      <h3>Recorrido de demostración (5 minutos)</h3>
+      <ol class="stack" style="--gap:.55rem;padding-left:1.2rem;margin:0">
+        <li>Estudiante entra, abre SmartMatch y encuentra el kit de redes.</li>
+        <li>Solicita el préstamo y recibe un folio con historial.</li>
+        <li>El gestor aprueba, entrega y registra la devolución.</li>
+        <li>Se registra un reporte; el área acusa recibo y lo resuelve.</li>
+        <li>Aviso, curso con progreso, KPIs y auditoría.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+{% endblock %}

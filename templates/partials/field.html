@@ -1,0 +1,14 @@
+{% if is_check %}
+<div class="field{% if f.errors %} has-error{% endif %}{% if wide %} span-2{% endif %}">
+  <label class="check" for="{{ f.id_for_label }}">{{ widget }} <span>{{ f.label }}</span></label>
+  {% if help %}<span class="help" id="{{ f.auto_id }}_help">{{ help }}</span>{% endif %}
+  {% for e in f.errors %}<span class="error-text" id="{{ f.auto_id }}_error"><svg class="i i-sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>{{ e }}</span>{% endfor %}
+</div>
+{% else %}
+<div class="field{% if f.errors %} has-error{% endif %}{% if wide %} span-2{% endif %}">
+  <label class="label" for="{{ f.id_for_label }}">{{ f.label }}{% if f.field.required %} <span class="req" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span>{% endif %}</label>
+  {% if help %}<span class="help" id="{{ f.auto_id }}_help">{{ help }}</span>{% endif %}
+  {{ widget }}
+  {% for e in f.errors %}<span class="error-text" id="{{ f.auto_id }}_error"><svg class="i i-sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>{{ e }}</span>{% endfor %}
+</div>
+{% endif %}

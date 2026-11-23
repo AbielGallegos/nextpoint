@@ -1,0 +1,21 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}{% if resource %}Editar {{ resource.name }}{% else %}Nuevo recurso{% endif %}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'catalog:manage_list' %}">Recursos</a>{% icon 'chevron-right' 'i-sm' %}<span>{% if resource %}{{ resource.name }}{% else %}Nuevo{% endif %}</span></nav>
+<div class="page-head"><div><h1>{% if resource %}Editar recurso{% else %}Nuevo recurso{% endif %}</h1><p>Un recurso solo se publica cuando tiene al menos un ejemplar registrado.</p></div></div>
+<form class="card" method="post" novalidate style="max-width:900px">{% csrf_token %}
+  <div class="card-body">
+    {% if form.errors %}<div class="error-summary" role="alert"><strong>Revisa los campos marcados.</strong><ul>{% for f in form %}{% for e in f.errors %}<li>{{ f.label }}: {{ e }}</li>{% endfor %}{% endfor %}{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+    <div class="form-grid mt-1">
+      {% field form.name %}{% field form.code %}
+      {% field form.category %}{% field form.area %}
+      {% field form.description wide=True %}
+      {% field form.tags_text wide=True %}
+      {% field form.requirements %}{% field form.loan_policy %}
+      {% field form.max_loan_days %}{% field form.location %}
+      {% field form.status %}
+    </div>
+  </div>
+  <div class="card-foot form-actions" style="margin:0"><a class="btn btn-ghost" href="{% if resource %}{% url 'catalog:manage_detail' resource.pk %}{% else %}{% url 'catalog:manage_list' %}{% endif %}">Cancelar</a><button class="btn btn-primary" type="submit">Guardar recurso</button></div>
+</form>
+{% endblock %}

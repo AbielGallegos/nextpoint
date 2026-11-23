@@ -1,0 +1,39 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}Informes{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'bar-chart-3' 'i-sm' %} Gobierno</div><h1>Informes operativos</h1><p>Consultas de solo lectura sobre los registros de tu alcance. Si no hay datos en el periodo, se indica «Sin datos».</p></div>
+  {% if can_export %}<div class="cluster"><a class="btn" href="{% url 'reporting:export' %}?tipo=solicitudes&desde={{ start|date:'Y-m-d' }}&hasta={{ end|date:'Y-m-d' }}{% if area_id %}&area={{ area_id }}{% endif %}">{% icon 'download' %} CSV solicitudes</a><a class="btn" href="{% url 'reporting:export' %}?tipo=prestamos&desde={{ start|date:'Y-m-d' }}&hasta={{ end|date:'Y-m-d' }}{% if area_id %}&area={{ area_id }}{% endif %}">{% icon 'download' %} CSV préstamos</a></div>{% endif %}</div>
+<form class="card filters" method="get">
+  <div class="field"><label class="label" for="d1">Desde</label><input class="input" type="date" id="d1" name="desde" value="{{ start|date:'Y-m-d' }}"></div>
+  <div class="field"><label class="label" for="d2">Hasta</label><input class="input" type="date" id="d2" name="hasta" value="{{ end|date:'Y-m-d' }}"></div>
+  <div class="field"><label class="label" for="ar">Área</label><select class="select" id="ar" name="area"><option value="">Todas las de mi alcance</option>{% for a in areas %}<option value="{{ a.pk }}" {% if area_id == a.pk %}selected{% endif %}>{{ a }} · {{ a.campus }}</option>{% endfor %}</select></div>
+  <button class="btn btn-primary" type="submit">{% icon 'filter' %} Aplicar</button>
+</form>
+<p class="small muted mt-1">Periodo {{ start|date:"d/m/Y" }} – {{ end|date:"d/m/Y" }} · zona horaria {{ tz }} · generado {{ generated|date:"d/m/Y H:i" }}{% if can_export %} · las exportaciones quedan en auditoría{% endif %}</p>
+<div class="grid g-4 kpi-grid mt-2">
+  <div class="card kpi"><span class="kpi-icon t-info">{% icon 'clipboard-list' %}</span><div><div class="kpi-value">{{ cases.total }}</div><div class="kpi-label">Solicitudes creadas</div></div></div>
+  <div class="card kpi"><span class="kpi-icon t-ok">{% icon 'check-circle-2' %}</span><div><div class="kpi-value">{% if cases.close_rate is not None %}{{ cases.close_rate }} %{% else %}—{% endif %}</div><div class="kpi-label">Tasa de resolución / cierre</div></div></div>
+  <div class="card kpi"><span class="kpi-icon">{% icon 'mail' %}</span><div><div class="kpi-value">{% if cases.ack_rate is not None %}{{ cases.ack_rate }} %{% else %}—{% endif %}</div><div class="kpi-label">Acuse ≤ {{ target }} días hábiles ({{ cases.ack_eligible }} elegibles)</div></div></div>
+  <div class="card kpi"><span class="kpi-icon t-accent">{% icon 'clock' %}</span><div><div class="kpi-value">{% if cases.median_resolve_h is not None %}{{ cases.median_resolve_h }} h{% else %}—{% endif %}</div><div class="kpi-label">Mediana hasta resolver</div></div></div>
+</div>
+<div class="grid g-2 mt-2">
+  <section class="card"><div class="card-head"><h2>Solicitudes por estado</h2></div><div class="card-body breakdown">
+    {% for s, n in cases.by_status.items %}{% if n %}<div class="breakdown-row"><span>{% badge s %}</span><span class="bar"><span style="width:{{ n|pct:cases.total }}%"></span></span><span class="text-right"><strong>{{ n }}</strong></span></div>{% endif %}{% empty %}{% endfor %}
+    {% if not cases.total %}<p class="muted small mb-0">Sin datos en el periodo.</p>{% endif %}</div></section>
+  <section class="card"><div class="card-head"><h2>Por categoría</h2></div><div class="card-body breakdown">
+    {% for c in by_category %}<div class="breakdown-row"><span>{{ c.category__name|truncatechars:22 }}</span><span class="bar"><span style="width:{{ c.n|pct:max_cat }}%"></span></span><span class="text-right"><strong>{{ c.n }}</strong></span></div>{% empty %}<p class="muted small mb-0">Sin datos en el periodo.</p>{% endfor %}</div></section>
+  <section class="card"><div class="card-head"><h2>Por área</h2></div><div class="table-wrap"><table class="table"><thead><tr><th>Área</th><th>Creadas</th><th>Resueltas/cerradas</th></tr></thead><tbody>
+    {% for a in by_area %}<tr><td>{{ a.area__name }}</td><td>{{ a.n }}</td><td>{{ a.closed }}</td></tr>{% empty %}<tr><td colspan="3" class="muted small">Sin datos.</td></tr>{% endfor %}</tbody></table></div></section>
+  <section class="card"><div class="card-head"><h2>Préstamos e inventario</h2></div><div class="card-body">
+    <dl class="dl" style="grid-template-columns:1fr auto">
+      <dt>Solicitudes de préstamo en el periodo</dt><dd><strong>{{ loans.requests }}</strong></dd><dt>Activos (entregados sin devolución)</dt><dd><strong>{{ loans.active }}</strong></dd>
+      <dt>Vencidos</dt><dd><strong>{{ loans.overdue }}</strong></dd><dt>Índice de devolución (cohorte)</dt><dd><strong>{% if loans.return_rate is not None %}{{ loans.return_rate }} %{% else %}Sin datos{% endif %}</strong></dd>
+      <dt>Rechazadas</dt><dd><strong>{{ loans.rejected }}</strong></dd><dt>Ejemplares disponibles</dt><dd><strong>{{ inventory.available }}</strong> / {{ inventory.units }}</dd><dt>Fuera de servicio</dt><dd><strong>{{ inventory.out_of_service }}</strong></dd>
+    </dl></div></section>
+  <section class="card"><div class="card-head"><h2>Formación</h2></div><div class="card-body">
+    <dl class="dl" style="grid-template-columns:1fr auto"><dt>Cursos publicados</dt><dd><strong>{{ courses.published }}</strong></dd><dt>Inscripciones</dt><dd><strong>{{ courses.enrollments }}</strong></dd><dt>Completadas</dt><dd><strong>{{ courses.completed }}</strong></dd><dt>Avance promedio</dt><dd><strong>{% if courses.avg_progress is not None %}{{ courses.avg_progress }} %{% else %}Sin datos{% endif %}</strong></dd></dl></div></section>
+  <section class="card"><div class="card-head"><h2>Satisfacción</h2></div><div class="card-body">
+    {% if cases.ratings %}<p class="mb-0">{{ cases.ratings|length }} valoración{{ cases.ratings|length|pluralize:"es" }} voluntaria{{ cases.ratings|length|pluralize }} (muestra pequeña: interpretar con cautela).</p>{% else %}<p class="muted small mb-0">Sin valoraciones en el periodo.</p>{% endif %}</div></section>
+</div>
+<p class="small subtle mt-2">Definiciones: «Préstamos activos» = entregados sin devolución registrada. «Acuse en meta» = casos acusados dentro de {{ target }} días hábiles (lunes a viernes, sin calendario de asuetos configurado) entre casos elegibles. Meta propuesta, pendiente de aprobación institucional.</p>
+{% endblock %}

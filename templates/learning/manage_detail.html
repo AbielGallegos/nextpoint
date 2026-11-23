@@ -1,0 +1,47 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}{{ c.title }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'learning:manage_list' %}">Cursos</a>{% icon 'chevron-right' 'i-sm' %}<span>{{ c.title }}</span></nav>
+<div class="page-head">
+  <div><div class="cluster">{% status c %}<span class="badge">{{ c.get_level_display }}</span></div><h1 class="mt-1">{{ c.title }}</h1><p>Autor: {{ c.author }} · Área de revisión: {{ c.area }}</p></div>
+  <div class="cluster">
+    {% if can_edit %}<a class="btn" href="{% url 'learning:manage_edit' c.pk %}">{% icon 'edit-3' %} Editar datos</a>
+      <form method="post" action="{% url 'learning:action' c.pk 'submit' %}">{% csrf_token %}<button class="btn btn-primary" type="submit">{% icon 'send' %} Enviar a revisión</button></form>{% endif %}
+    {% if can_publish and c.status == 'en_revision' %}
+      <button class="btn btn-danger" data-confirm-dialog="dlg-return">{% icon 'arrow-left' %} Devolver</button>
+      <button class="btn btn-primary" data-confirm-dialog="dlg-approve">{% icon 'check' %} Aprobar y publicar</button>{% endif %}
+    {% if can_publish and c.status == 'publicado' %}<form method="post" action="{% url 'learning:action' c.pk 'archive' %}">{% csrf_token %}<button class="btn" type="submit">{% icon 'lock' %} Archivar</button></form>{% endif %}
+  </div>
+</div>
+{% if c.review_note %}<div class="notice t-warn" style="margin-bottom:1rem">{% icon 'message-square' %}<div><strong>Observaciones de revisión:</strong> {{ c.review_note }}</div></div>{% endif %}
+{% if c.status == 'en_revision' and not can_publish %}<div class="notice t-info" style="margin-bottom:1rem">{% icon 'clock' %}<div>En revisión por el área. No es visible para estudiantes hasta que se apruebe.</div></div>{% endif %}
+<div class="grid g-main">
+  <div class="stack">
+    <section class="card"><div class="card-head"><h2>Estructura</h2></div>
+      {% for m in modules %}<div class="card-body" style="padding-bottom:.2rem"><h3 class="small" style="text-transform:uppercase;letter-spacing:.05em;color:var(--g-600)">Módulo {{ m.position }} · {{ m.title }}</h3>
+        <ul class="list">{% for l in m.lessons.all %}<li class="list-item" style="padding-left:0"><span class="list-icon">{% icon 'book-open' %}</span><div class="list-main"><div class="list-title">{{ l.position }}. {{ l.title }}</div><div class="list-meta">{{ l.get_kind_display }} · {{ l.duration_minutes }} min · {% if l.published %}visible{% else %}oculta{% endif %}</div></div>
+          <details><summary class="small" style="cursor:pointer">Vista previa</summary><div class="lesson-body small mt-1" style="max-width:52ch">{{ l.content|paragraphs }}</div></details></li>{% endfor %}</ul></div>
+      {% empty %}<div class="empty"><h3>Sin lecciones</h3><p>Agrega al menos una lección para poder enviar a revisión.</p></div>{% endfor %}
+    </section>
+    {% if can_edit %}
+    <form class="card" method="post" action="{% url 'learning:add_lesson' c.pk %}" novalidate>{% csrf_token %}
+      <div class="card-head"><h2>Agregar lección</h2></div>
+      <div class="card-body"><div class="form-grid">{% field lesson_form.module_title %}{% field lesson_form.title %}{% field lesson_form.kind %}{% field lesson_form.duration_minutes %}{% field lesson_form.content wide=True %}{% field lesson_form.published wide=True %}</div></div>
+      <div class="card-foot form-actions" style="margin:0"><button class="btn btn-primary" type="submit">{% icon 'plus' %} Agregar lección</button></div>
+    </form>{% endif %}
+  </div>
+  <aside class="stack">
+    <div class="card card-pad"><h2 style="font-size:1rem">Ficha</h2><dl class="dl" style="grid-template-columns:110px 1fr"><dt>Modalidad</dt><dd>{{ c.get_mode_display }}</dd><dt>Duración</dt><dd>{{ c.duration_minutes }} min</dd><dt>Cupo</dt><dd>{{ c.capacity|default:"Sin límite" }}</dd><dt>Licencia</dt><dd>{% if c.content_license_ok %}Original / con permiso{% else %}Sin confirmar{% endif %}</dd><dt>Publicado</dt><dd>{{ c.published_at|date:"d/m/Y"|default:"—" }}</dd></dl></div>
+    <div class="card"><div class="card-head"><h2 style="font-size:1rem">Inscripciones ({{ rows|length }})</h2></div>
+      <ul class="list">{% for r in rows %}<li class="list-item"><div class="list-main"><div class="list-title">{{ r.e.student.display_name }}</div><div class="progress mt-1 {% if r.pct == 100 %}is-done{% endif %}"><span style="width:{{ r.pct }}%"></span></div></div><strong class="small">{{ r.pct }} %</strong></li>{% empty %}<li class="list-item small muted">Sin inscripciones.</li>{% endfor %}</ul></div>
+  </aside>
+</div>
+{% if can_publish %}
+<dialog class="modal" id="dlg-approve" aria-labelledby="da-t"><form method="post" action="{% url 'learning:action' c.pk 'approve' %}">{% csrf_token %}
+  <div class="modal-head"><h2 id="da-t">Publicar «{{ c.title }}»</h2></div><div class="modal-body"><p class="small muted">Será visible en el catálogo del campus. Confirmas que revisaste el contenido y su licencia.</p><div class="field"><label class="label" for="ap-n">Nota (opcional)</label><input class="input" id="ap-n" name="note" maxlength="300"></div></div>
+  <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Volver</button><button class="btn btn-primary" type="submit">Aprobar y publicar</button></div></form></dialog>
+<dialog class="modal" id="dlg-return" aria-labelledby="dt-t"><form method="post" action="{% url 'learning:action' c.pk 'return' %}">{% csrf_token %}
+  <div class="modal-head"><h2 id="dt-t">Devolver a borrador</h2></div><div class="modal-body"><div class="field"><label class="label" for="rt-n">¿Qué debe corregirse? <span class="req">*</span></label><textarea class="textarea" id="rt-n" name="note" required minlength="5" maxlength="300"></textarea></div></div>
+  <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Volver</button><button class="btn btn-solid-danger" type="submit">Devolver</button></div></form></dialog>
+{% endif %}
+{% endblock %}

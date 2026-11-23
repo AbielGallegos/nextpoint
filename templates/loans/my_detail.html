@@ -1,0 +1,42 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}{{ req.folio }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'loans:mine' %}">Mis préstamos</a>{% icon 'chevron-right' 'i-sm' %}<span class="mono">{{ req.folio }}</span></nav>
+<div class="page-head">
+  <div><div class="cluster"><span class="tag mono">{{ req.folio }}</span>{% status req %}{% if req.status == 'entregado' and req.due_date < today %}{% badge 'vencido' 'Devolución vencida' 'danger' %}{% endif %}</div>
+  <h1 class="mt-1">{{ req.resource.name }}</h1><p>Atiende: {{ req.area.name }} · registrada el {{ req.created_at|date:"d/m/Y H:i" }}</p></div>
+  {% if req.status in 'solicitado en_revision aprobado' %}<button class="btn btn-danger" data-confirm-dialog="dlg-cancel">{% icon 'x' %} Cancelar solicitud</button>{% endif %}
+</div>
+<div class="card card-pad">{% include "loans/_steps.html" %}</div>
+<div class="grid g-main mt-2">
+  <section class="card" aria-labelledby="h-hist">
+    <div class="card-head"><h2 id="h-hist">Historial</h2><span class="small muted">Registro inmutable</span></div>
+    <div class="card-body"><ol class="timeline">
+      {% for e in events %}
+      <li class="tl-item is-status"><span class="tl-dot">{% icon 'check' %}</span>
+        <div class="tl-head">{% badge e.status_after %}<span class="muted">{{ e.created_at|date:"d/m/Y H:i" }}</span><span class="subtle">· {% if e.actor_id == user.pk %}Tú{% else %}{{ req.area.name }}{% endif %}</span></div>
+        {% if e.note %}<div class="tl-body">{{ e.note }}</div>{% endif %}</li>
+      {% endfor %}
+    </ol></div>
+  </section>
+  <aside class="stack">
+    <div class="card card-pad"><h2 style="font-size:1rem">Detalle</h2>
+      <dl class="dl" style="grid-template-columns:120px 1fr">
+        <dt>Inicio</dt><dd>{{ req.start_date|date:"d/m/Y" }}</dd><dt>Devolución</dt><dd>{{ req.due_date|date:"d/m/Y" }}</dd>
+        <dt>Finalidad</dt><dd>{{ req.purpose }}</dd>
+        {% if req.unit %}<dt>Ejemplar</dt><dd class="mono">{{ req.unit.serial }}</dd>{% endif %}
+        {% if req.decision_note %}<dt>{% if req.status == 'rechazado' %}Motivo{% else %}Indicaciones{% endif %}</dt><dd>{{ req.decision_note }}</dd>{% endif %}
+      </dl></div>
+    {% if req.status == 'aprobado' %}<div class="notice t-ok">{% icon 'check-circle-2' %}<div>Tu solicitud fue aprobada. Revisa las indicaciones de entrega con el área responsable.</div></div>{% endif %}
+    {% if req.status == 'entregado' %}<div class="notice t-warn">{% icon 'clock' %}<div>Devuelve el material el {{ req.due_date|date:"d/m/Y" }}. La devolución tardía se registra, pero no genera cobros.</div></div>{% endif %}
+    <a class="btn w-full" href="{% url 'cases:new' %}?categoria=">{% icon 'flag' %} Reportar un problema con este material</a>
+  </aside>
+</div>
+{% if req.status in 'solicitado en_revision aprobado' %}
+<dialog class="modal" id="dlg-cancel" aria-labelledby="dlg-cancel-t"><form method="post" action="{% url 'loans:cancel' req.pk %}">{% csrf_token %}
+  <div class="modal-head"><h2 id="dlg-cancel-t">¿Cancelar {{ req.folio }}?</h2></div>
+  <div class="modal-body"><p class="muted">La solicitud quedará como cancelada (no se borra) y, si había un ejemplar apartado, se liberará.</p></div>
+  <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Volver</button><button class="btn btn-solid-danger" type="submit">Sí, cancelar</button></div>
+</form></dialog>
+{% endif %}
+{% endblock %}

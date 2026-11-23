@@ -1,0 +1,23 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}Mis solicitudes{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'clipboard-list' 'i-sm' %} Solicitudes e incidencias</div><h1>Mis solicitudes</h1><p>Cada caso tiene un folio, un área responsable y una línea de tiempo con sus respuestas.</p></div>
+  <a class="btn btn-primary" href="{% url 'cases:new' %}">{% icon 'plus' %} Nueva solicitud</a></div>
+<div class="chips" role="tablist" aria-label="Vista">
+  <a class="chip {% if tab == 'abiertas' %}is-active{% endif %}" role="tab" aria-selected="{% if tab == 'abiertas' %}true{% else %}false{% endif %}" href="?vista=abiertas">Abiertas <span class="count">{{ counts.abiertas }}</span></a>
+  <a class="chip {% if tab == 'cerradas' %}is-active{% endif %}" role="tab" aria-selected="{% if tab == 'cerradas' %}true{% else %}false{% endif %}" href="?vista=cerradas">Terminadas <span class="count">{{ counts.cerradas }}</span></a>
+</div>
+<div class="card mt-2">
+  <div class="table-wrap"><table class="table responsive">
+    <thead><tr><th>Folio</th><th>Asunto</th><th>Área</th><th>Actualizado</th><th>Estado</th></tr></thead>
+    <tbody>
+    {% for c in page %}
+      <tr><td class="cell-main"><a class="row-link mono" href="{% url 'cases:my_detail' c.pk %}">{{ c.folio }}</a></td><td data-label="Asunto">{{ c.subject }}<div class="small subtle">{{ c.category }}</div></td>
+      <td data-label="Área">{{ c.area }}</td><td data-label="Actualizado" class="nowrap">{{ c.updated_at|date:"d/m/Y H:i" }}</td><td data-label="Estado">{% badge c.status %}</td></tr>
+    {% empty %}
+      <tr><td colspan="5"><div class="empty"><div class="empty-icon">{% icon 'inbox' 'i-lg' %}</div><h3>{% if tab == 'abiertas' %}Todavía no tienes solicitudes abiertas{% else %}Sin solicitudes terminadas{% endif %}</h3><p>Cuando registres una, podrás seguir su avance aquí.</p><a class="btn btn-primary" href="{% url 'cases:new' %}">Crear solicitud</a></div></td></tr>
+    {% endfor %}
+    </tbody></table></div>
+  {% include "partials/pagination.html" %}
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}{{ req.folio }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'loans:queue' %}">Préstamos</a>{% icon 'chevron-right' 'i-sm' %}<span class="mono">{{ req.folio }}</span></nav>
+<div class="page-head">
+  <div><div class="cluster"><span class="tag mono">{{ req.folio }}</span>{% status req %}{% if req.status == 'entregado' and req.due_date < today %}{% badge 'vencido' 'Vencido' 'danger' %}{% endif %}</div>
+  <h1 class="mt-1">{{ req.resource.name }}</h1><p>{{ req.applicant.display_name }} · {{ req.area.name }}</p></div>
+</div>
+<div class="card card-pad">{% include "loans/_steps.html" %}</div>
+{% if not can_manage %}<div class="notice t-info mt-2">{% icon 'eye' %}<div>Vista de supervisión: puedes consultar, pero las decisiones corresponden al gestor del área{% if req.applicant_id == user.pk %} (nadie decide sobre su propia solicitud){% endif %}.</div></div>{% endif %}
+<div class="grid g-main mt-2">
+  <div class="stack">
+    {% if can_manage and allowed %}
+    <section class="card" aria-labelledby="h-actions">
+      <div class="card-head"><h2 id="h-actions">Acciones</h2><span class="small muted">Se validan en servidor</span></div>
+      <div class="card-body stack">
+        {% if 'review' in allowed %}<form method="post" action="{% url 'loans:manage_action' req.pk 'review' %}">{% csrf_token %}<button class="btn" type="submit">{% icon 'eye' %} Marcar en revisión</button></form>{% endif %}
+        {% if 'approve' in allowed %}
+        <form method="post" action="{% url 'loans:manage_action' req.pk 'approve' %}" class="stack" style="--gap:.6rem">{% csrf_token %}
+          <div class="field"><label class="label" for="ap-note">Indicaciones para el estudiante (opcional)</label><input class="input" id="ap-note" name="note" maxlength="300" placeholder="Ej. recoger en ventanilla de 9 a 13 h"></div>
+          <div class="cluster"><button class="btn btn-primary" type="submit">{% icon 'check' %} Aprobar y apartar ejemplar</button>
+            <button class="btn btn-danger" type="button" data-confirm-dialog="dlg-reject">{% icon 'ban' %} Rechazar</button></div>
+        </form>{% endif %}
+        {% if 'deliver' in allowed %}
+        <form method="post" action="{% url 'loans:manage_action' req.pk 'deliver' %}" class="stack" style="--gap:.6rem">{% csrf_token %}
+          <p class="mb-0">Entregar el ejemplar <strong class="mono">{{ req.unit.serial }}</strong> a {{ req.applicant.display_name }}.</p>
+          <div class="form-grid">
+            <div class="field"><label class="label" for="dl-cond">Condición al entregar <span class="req">*</span></label><select class="select" id="dl-cond" name="condition" required>{% for v,l in conditions %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select></div>
+            <div class="field"><label class="label" for="dl-note">Observaciones</label><input class="input" id="dl-note" name="note" maxlength="200"></div>
+          </div>
+          <div class="cluster"><button class="btn btn-primary" type="submit">{% icon 'package' %} Registrar entrega</button></div>
+        </form>{% endif %}
+        {% if 'return' in allowed %}
+        <form method="post" action="{% url 'loans:manage_action' req.pk 'return' %}" class="stack" style="--gap:.6rem">{% csrf_token %}
+          <p class="mb-0">Recibir el ejemplar <strong class="mono">{{ req.unit.serial }}</strong>. Decide en qué estado queda.</p>
+          <div class="form-grid">
+            <div class="field"><label class="label" for="rt-cond">Condición al recibir <span class="req">*</span></label><select class="select" id="rt-cond" name="condition" required>{% for v,l in conditions %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select></div>
+            <div class="field"><label class="label" for="rt-dest">El ejemplar queda <span class="req">*</span></label><select class="select" id="rt-dest" name="destination" required><option value="disponible">Disponible</option><option value="revision">En revisión</option><option value="mantenimiento">En mantenimiento</option></select></div>
+            <div class="field span-2"><label class="label" for="rt-note">Observaciones (obligatorias si hay daño)</label><input class="input" id="rt-note" name="note" maxlength="300"></div>
+          </div>
+          <div class="cluster"><button class="btn btn-primary" type="submit">{% icon 'check-circle-2' %} Registrar devolución</button></div>
+        </form>{% endif %}
+        {% if 'cancel' in allowed and req.status == 'aprobado' %}<button class="btn btn-danger" type="button" data-confirm-dialog="dlg-cancel">{% icon 'x' %} Cancelar préstamo aprobado</button>{% endif %}
+      </div>
+    </section>
+    {% endif %}
+    {% if conflicts and req.status in 'solicitado en_revision' %}
+    <div class="notice t-warn">{% icon 'alert-triangle' %}<div><strong>Atención:</strong> {{ conflicts|length }} apartado{{ conflicts|length|pluralize }} vigente{{ conflicts|length|pluralize }} se traslapa{{ conflicts|length|pluralize:"n" }} con estas fechas ({% for c in conflicts %}{{ c.folio }} · {{ c.unit.serial }}{% if not forloop.last %}, {% endif %}{% endfor %}). Si no queda un ejemplar libre, la aprobación será rechazada.</div></div>
+    {% endif %}
+    <section class="card"><div class="card-head"><h2>Historial de estados</h2></div>
+      <div class="card-body"><ol class="timeline">{% for e in events %}
+        <li class="tl-item is-status"><span class="tl-dot">{% icon 'check' %}</span><div class="tl-head">{% if e.status_before %}{% badge e.status_before %} {% icon 'arrow-right' 'i-sm' %}{% endif %} {% badge e.status_after %}<span class="muted">{{ e.created_at|date:"d/m/Y H:i" }}</span><span class="subtle">· {{ e.actor }}</span></div>{% if e.note %}<div class="tl-body">{{ e.note }}</div>{% endif %}</li>
+      {% endfor %}</ol></div></section>
+    <section class="card"><div class="card-head"><h2>Movimientos de inventario</h2></div>
+      <ul class="list">{% for m in movements %}<li class="list-item"><span class="list-icon">{% icon 'history' %}</span><div class="list-main"><div class="list-title">{{ m.get_kind_display }} · <span class="mono">{{ m.unit.serial }}</span></div><div class="list-meta">{{ m.created_at|date:"d/m/Y H:i" }} · {{ m.actor }} · {{ m.state_before|default:"—" }} → {{ m.state_after|default:"—" }}{% if m.note %} · {{ m.note }}{% endif %}</div></div></li>{% empty %}<li class="list-item small muted">Aún sin movimientos: el inventario cambia al aprobar (apartado), entregar y devolver.</li>{% endfor %}</ul></section>
+  </div>
+  <aside class="stack">
+    <div class="card card-pad"><h2 style="font-size:1rem">Solicitud</h2>
+      <dl class="dl" style="grid-template-columns:110px 1fr"><dt>Fechas</dt><dd>{{ req.start_date|date:"d/m/Y" }} – {{ req.due_date|date:"d/m/Y" }}</dd><dt>Finalidad</dt><dd>{{ req.purpose }}</dd>
+      <dt>Ejemplar</dt><dd class="mono">{{ req.unit.serial|default:"Sin asignar" }}</dd>{% if req.decided_by %}<dt>Decidió</dt><dd>{{ req.decided_by }} · {{ req.decided_at|date:"d/m H:i" }}</dd>{% endif %}{% if req.decision_note %}<dt>Nota</dt><dd>{{ req.decision_note }}</dd>{% endif %}
+      {% if loan %}<dt>Entregado</dt><dd>{{ loan.delivered_at|date:"d/m/Y H:i" }} ({{ loan.delivery_condition }})</dd>{% if loan.returned_at %}<dt>Devuelto</dt><dd>{{ loan.returned_at|date:"d/m/Y H:i" }} ({{ loan.return_condition }})</dd>{% endif %}{% endif %}</dl></div>
+    <div class="card"><div class="card-head"><h2 style="font-size:1rem">Ejemplares del recurso</h2></div>
+      <ul class="list">{% for u in units %}<li class="list-item"><span class="mono" style="flex:1">{{ u.serial }}</span>{% badge u.state u.get_state_display %}</li>{% endfor %}</ul></div>
+  </aside>
+</div>
+{% if can_manage %}
+<dialog class="modal" id="dlg-reject" aria-labelledby="dlg-reject-t"><form method="post" action="{% url 'loans:manage_action' req.pk 'reject' %}">{% csrf_token %}
+  <div class="modal-head"><h2 id="dlg-reject-t">Rechazar {{ req.folio }}</h2></div>
+  <div class="modal-body"><p class="small muted">El estudiante verá el motivo. El registro se conserva.</p><div class="field"><label class="label" for="rj-reason">Motivo <span class="req">*</span></label><textarea class="textarea" id="rj-reason" name="reason" required minlength="5" maxlength="300"></textarea></div></div>
+  <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Volver</button><button class="btn btn-solid-danger" type="submit">Rechazar solicitud</button></div></form></dialog>
+<dialog class="modal" id="dlg-cancel" aria-labelledby="dlg-cancel-t"><form method="post" action="{% url 'loans:manage_action' req.pk 'cancel' %}">{% csrf_token %}
+  <div class="modal-head"><h2 id="dlg-cancel-t">Cancelar préstamo aprobado</h2></div>
+  <div class="modal-body"><p class="small muted">Se liberará el ejemplar apartado y se notificará al estudiante.</p><div class="field"><label class="label" for="cn-reason">Motivo <span class="req">*</span></label><textarea class="textarea" id="cn-reason" name="reason" required minlength="5" maxlength="300"></textarea></div></div>
+  <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Volver</button><button class="btn btn-solid-danger" type="submit">Cancelar préstamo</button></div></form></dialog>
+{% endif %}
+{% endblock %}

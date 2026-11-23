@@ -1,0 +1,17 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}Invitar cuenta{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'accounts:users' %}">Usuarios</a>{% icon 'chevron-right' 'i-sm' %}<span>Invitar</span></nav>
+<div class="page-head"><div><h1>Invitar una cuenta</h1><p>El registro de perfiles con privilegios solo ocurre por invitación de una cuenta autorizada. La invitación es de un solo uso y caduca en 7 días.</p></div></div>
+<form class="card" method="post" novalidate style="max-width:760px">{% csrf_token %}
+  <div class="card-body">
+    {% if form.errors %}<div class="error-summary" role="alert"><strong>Revisa los campos marcados.</strong>{% if form.non_field_errors %}<ul>{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</div>{% endif %}
+    <div class="form-grid mt-1">
+      {% field form.display_name %}{% field form.email %}
+      {% field form.role %}{% field form.campus %}
+      {% field form.area wide=True %}
+    </div>
+  </div>
+  <div class="card-foot form-actions" style="margin:0"><a class="btn btn-ghost" href="{% url 'accounts:users' %}">Cancelar</a><button class="btn btn-primary" type="submit">Generar invitación</button></div>
+</form>
+{% endblock %}

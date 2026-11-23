@@ -1,0 +1,35 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}Nueva solicitud{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'cases:mine' %}">Mis solicitudes</a>{% icon 'chevron-right' 'i-sm' %}<span>Nueva</span></nav>
+<div class="page-head"><div><h1>Nueva solicitud o reporte</h1><p>Describe tu situación con datos ficticios o no sensibles. No incluyas CURP, domicilios, contraseñas ni información de salud.</p></div></div>
+<form class="card" method="post" enctype="multipart/form-data" novalidate style="max-width:900px">{% csrf_token %}
+  <input type="hidden" name="idempotency_key" value="{{ key }}">
+  <div class="card-body">
+    {% if errors %}<div class="error-summary" role="alert"><strong>Revisa los campos marcados.</strong><ul>{% for k, e in errors.items %}<li><a href="#f-{{ k }}">{{ e }}</a></li>{% endfor %}</ul></div>{% endif %}
+    <fieldset class="field{% if errors.category %} has-error{% endif %}" id="f-category">
+      <legend class="label">¿Qué necesitas? <span class="req">*</span></legend>
+      <div class="choice-grid">
+        {% for c in categories %}
+        <div class="choice"><input type="radio" name="category" id="cat-{{ c.pk }}" value="{{ c.pk }}" {% if preselected == c.pk|stringformat:"d" %}checked{% endif %} required>
+          <label for="cat-{{ c.pk }}" style="flex-direction:column;align-items:flex-start;gap:.2rem">{{ c.name }}<span class="small muted" style="font-weight:450">{{ c.get_kind_display }} · {{ c.area }}</span></label></div>
+        {% endfor %}
+      </div>
+      {% if errors.category %}<span class="error-text">{% icon 'alert-triangle' 'i-sm' %}{{ errors.category }}</span>{% endif %}
+    </fieldset>
+    <div class="form-grid mt-3">
+      <div class="field span-2{% if errors.subject %} has-error{% endif %}"><label class="label" for="f-subject">Asunto <span class="req">*</span></label>
+        <input class="input" id="f-subject" name="subject" maxlength="140" value="{{ data.subject }}" required {% if errors.subject %}aria-invalid="true" aria-describedby="e-subject"{% endif %}>
+        {% if errors.subject %}<span class="error-text" id="e-subject">{% icon 'alert-triangle' 'i-sm' %}{{ errors.subject }}</span>{% endif %}</div>
+      <div class="field span-2{% if errors.description %} has-error{% endif %}"><label class="label" for="f-description">Descripción <span class="req">*</span></label>
+        <textarea class="textarea" id="f-description" name="description" maxlength="3000" data-counter="c-desc" required aria-describedby="c-desc{% if errors.description %} e-desc{% endif %}" {% if errors.description %}aria-invalid="true"{% endif %}>{{ data.description }}</textarea>
+        <span class="help" id="c-desc"></span>
+        {% if errors.description %}<span class="error-text" id="e-desc">{% icon 'alert-triangle' 'i-sm' %}{{ errors.description }}</span>{% endif %}</div>
+      <div class="field"><label class="label" for="f-priority">Prioridad sugerida</label><select class="select" id="f-priority" name="priority">{% for v,l in priorities %}<option value="{{ v }}" {% if data.priority == v or not data.priority and v == 'normal' %}selected{% endif %}>{{ l }}</option>{% endfor %}</select><span class="help">El área puede ajustarla al clasificar.</span></div>
+      <div class="field{% if errors.attachment %} has-error{% endif %}"><label class="label" for="f-att">Adjunto (opcional)</label><input class="input" type="file" id="f-att" name="attachment" accept=".pdf,.png,.jpg,.jpeg" aria-describedby="h-att"><span class="help" id="h-att">PDF, PNG o JPG · máximo 5 MB. Se guarda en almacenamiento privado.</span>
+        {% if errors.attachment %}<span class="error-text">{% icon 'alert-triangle' 'i-sm' %}{{ errors.attachment }}</span>{% endif %}</div>
+    </div>
+  </div>
+  <div class="card-foot form-actions" style="margin:0"><a class="btn btn-ghost" href="{% url 'cases:mine' %}">Cancelar</a><button class="btn btn-primary" type="submit" data-busy-label="Registrando…">{% icon 'send' %} Registrar solicitud</button></div>
+</form>
+{% endblock %}

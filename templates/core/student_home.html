@@ -1,0 +1,98 @@
+{% extends "layouts/portal.html" %}{% load np humanize %}
+{% block title %}Inicio{% endblock %}
+{% block content %}
+<section class="hero-card">
+  <div class="cluster between" style="align-items:flex-start">
+    <div>
+      <div class="small" style="opacity:.8">{{ user.campus.name }} · {{ now|date:"l j \d\e F"|lower }}</div>
+      <h1 class="mt-1" style="font-size:1.75rem">Hola, {{ user.first_name }}</h1>
+      <p class="mb-0" style="max-width:56ch">{% if open_cases_count or pending_loans_count or active_loans_count %}Tienes {{ open_cases_count }} solicitud{{ open_cases_count|pluralize:"es" }} abierta{{ open_cases_count|pluralize }} y {{ active_loans_count }} préstamo{{ active_loans_count|pluralize }} activo{{ active_loans_count|pluralize }}.{% else %}Todo al día. ¿Qué necesitas hoy?{% endif %}</p>
+    </div>
+  </div>
+  <nav class="quick" aria-label="Accesos rápidos">
+    <a href="{% url 'smartmatch:home' %}">{% icon 'sparkles' %} Abrir SmartMatch</a>
+    <a href="{% url 'catalog:list' %}">{% icon 'package' %} Solicitar material</a>
+    <a href="{% url 'cases:new' %}">{% icon 'plus' %} Crear reporte</a>
+    <a href="{% url 'communications:alerts' %}">{% icon 'megaphone' %} Ver avisos</a>
+  </nav>
+</section>
+
+<div class="grid g-4 kpi-grid mt-3">
+  <a class="card card-link kpi" href="{% url 'cases:mine' %}"><span class="kpi-icon t-info">{% icon 'clipboard-list' %}</span><div><div class="kpi-value">{{ open_cases_count }}</div><div class="kpi-label">Solicitudes abiertas</div></div></a>
+  <a class="card card-link kpi" href="{% url 'loans:mine' %}"><span class="kpi-icon t-accent">{% icon 'package' %}</span><div><div class="kpi-value">{{ active_loans_count }}</div><div class="kpi-label">Préstamos activos</div></div></a>
+  <a class="card card-link kpi" href="{% url 'loans:mine' %}"><span class="kpi-icon">{% icon 'send' %}</span><div><div class="kpi-value">{{ pending_loans_count }}</div><div class="kpi-label">Préstamos en trámite</div></div></a>
+  <a class="card card-link kpi" href="{% url 'learning:catalog' %}"><span class="kpi-icon t-ok">{% icon 'graduation-cap' %}</span><div><div class="kpi-value">{{ started|length }}</div><div class="kpi-label">Cursos en progreso</div></div></a>
+</div>
+<p class="updated mt-1">{% icon 'refresh-cw' 'i-sm' %} Calculado con tus registros · {{ now|date:"H:i" }} h (hora del centro de México)</p>
+
+<div class="grid g-main mt-2">
+  <div class="stack">
+    <section class="card" aria-labelledby="h-due">
+      <div class="card-head"><h2 id="h-due">Próximos vencimientos</h2><a class="small" href="{% url 'loans:mine' %}">Ver préstamos</a></div>
+      {% if upcoming %}
+      <ul class="list">
+        {% for l in upcoming %}
+        <li><a class="list-item" href="{% url 'loans:my_detail' l.pk %}">
+          <span class="list-icon">{% icon 'calendar' %}</span>
+          <div class="list-main"><div class="list-title">{{ l.resource.name }}</div>
+            <div class="list-meta">{{ l.folio }} · {% if l.status == 'entregado' %}devolver el {{ l.due_date|date:"d/m/Y" }}{% else %}recoger a partir del {{ l.start_date|date:"d/m/Y" }}{% endif %}</div></div>
+          {% if l.status == 'entregado' and l.due_date < today %}{% badge 'vencido' 'Vencido' 'danger' %}{% else %}{% status l %}{% endif %}
+        </a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="empty"><div class="empty-icon">{% icon 'calendar' 'i-lg' %}</div><h3>Sin vencimientos próximos</h3><p class="small">Cuando tengas préstamos activos verás aquí sus fechas de devolución.</p></div>
+      {% endif %}
+    </section>
+
+    <section class="card" aria-labelledby="h-act">
+      <div class="card-head"><h2 id="h-act">Actividad reciente</h2><a class="small" href="{% url 'cases:mine' %}">Mis solicitudes</a></div>
+      {% if activity %}
+      <ul class="list">
+        {% for a in activity %}
+        <li><a class="list-item" href="{{ a.url }}"><span class="list-icon">{% icon a.icon %}</span>
+          <div class="list-main"><div class="list-title">{{ a.title }}</div><div class="list-meta">{{ a.when|naturaltime }}</div></div>
+          {% if a.status == 'mensaje' %}{% badge 'mensaje' 'Mensaje' 'info' %}{% else %}{% badge a.status %}{% endif %}</a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="empty"><div class="empty-icon">{% icon 'inbox' 'i-lg' %}</div><h3>Todavía no tienes solicitudes</h3><p class="small">Cuando registres una, podrás seguir su avance aquí.</p><a class="btn btn-primary" href="{% url 'cases:new' %}">Crear solicitud</a></div>
+      {% endif %}
+    </section>
+
+    {% if enrollments %}
+    <section class="card" aria-labelledby="h-courses">
+      <div class="card-head"><h2 id="h-courses">Tus cursos</h2><a class="small" href="{% url 'learning:catalog' %}">Catálogo</a></div>
+      <ul class="list">{% for e in enrollments %}
+        <li><a class="list-item" href="{% url 'learning:detail' e.course_id %}"><span class="list-icon">{% icon 'book-open' %}</span>
+          <div class="list-main"><div class="list-title">{{ e.course.title }}</div><div class="progress mt-1 {% if e.pct == 100 %}is-done{% endif %}" role="progressbar" aria-valuenow="{{ e.pct }}" aria-valuemin="0" aria-valuemax="100" aria-label="Avance"><span style="width:{{ e.pct }}%"></span></div></div>
+          <strong class="small">{{ e.pct }} %</strong></a></li>
+      {% endfor %}</ul>
+    </section>
+    {% endif %}
+  </div>
+
+  <aside class="stack">
+    <section class="card" aria-labelledby="h-alerts">
+      <div class="card-head"><h2 id="h-alerts">Avisos prioritarios</h2><a class="small" href="{% url 'communications:alerts' %}">Todos</a></div>
+      {% if alerts %}
+      <ul class="list">{% for a in alerts %}
+        <li><a class="list-item unread" href="{% url 'communications:alert_detail' a.pk %}"><span class="list-icon" style="background:var(--accent-100);color:var(--accent-600)">{% icon 'megaphone' %}</span>
+          <div class="list-main"><div class="list-title">{{ a.title }}</div><div class="list-meta">{{ a.get_category_display }}{% if a.expires_at %} · hasta {{ a.expires_at|date:"d/m" }}{% endif %}</div></div></a></li>
+      {% endfor %}</ul>
+      {% else %}<div class="empty" style="padding:1.5rem"><p class="small mb-0">No tienes avisos pendientes de leer.</p></div>{% endif %}
+    </section>
+
+    <section class="card" aria-labelledby="h-sugg">
+      <div class="card-head"><h2 id="h-sugg">Podría interesarte</h2><span class="badge t-brand">{% icon 'sparkles' %}SmartMatch</span></div>
+      {% if suggestions %}
+      <ul class="list">{% for r in suggestions %}
+        <li><a class="list-item" href="{{ r.candidate.url }}"><div class="score-ring" style="--v:{{ r.score }};width:44px;height:44px"><b style="font-size:.8rem">{{ r.score }}</b></div>
+          <div class="list-main"><div class="list-title">{{ r.candidate.title }}</div><div class="list-meta">{{ r.candidate.availability_label }}</div></div></a></li>
+      {% endfor %}</ul>
+      <div class="card-foot small muted">Basado en {% if need %}tu última necesidad: «{{ need.label }}»{% else %}materiales disponibles en tu campus{% endif %}.</div>
+      {% else %}<div class="empty" style="padding:1.5rem"><p class="small">Usa SmartMatch para recibir recomendaciones explicadas.</p><a class="btn btn-sm" href="{% url 'smartmatch:home' %}">Abrir SmartMatch</a></div>{% endif %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

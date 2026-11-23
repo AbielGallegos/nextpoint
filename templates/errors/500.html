@@ -1,0 +1,8 @@
+{% extends "errors/_base.html" %}{% load np %}
+{% block title %}Error temporal{% endblock %}
+{% block err %}
+<div class="error-code">ERROR DEL SERVIDOR · 500</div>
+<h1>No pudimos completar la operación</h1>
+<p class="muted">Tu información anterior está a salvo; intenta de nuevo. Si el problema continúa, comparte este identificador con soporte:</p>
+<p><span class="tag mono">{{ trace_id }}</span></p>
+{% endblock %}

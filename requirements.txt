@@ -1,0 +1,5 @@
+Django==5.2.19
+dj-database-url==3.1.2
+whitenoise==6.12.0
+# Solo si usas PostgreSQL (recomendado para el piloto y para la prueba de concurrencia E2E-07):
+psycopg[binary]==3.3.9

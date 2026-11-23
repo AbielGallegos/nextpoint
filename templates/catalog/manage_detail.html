@@ -1,0 +1,52 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}{{ r.name }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'catalog:manage_list' %}">Recursos</a>{% icon 'chevron-right' 'i-sm' %}<span>{{ r.name }}</span></nav>
+<div class="page-head">
+  <div><div class="cluster"><span class="tag mono">{{ r.code }}</span>{% status r %}<span class="badge t-{{ av.tone }}">{{ av.label }}</span></div><h1 class="mt-1">{{ r.name }}</h1><p>{{ r.area }} · {{ r.category }}</p></div>
+  <a class="btn" href="{% url 'catalog:manage_edit' r.pk %}">{% icon 'edit-3' %} Editar</a>
+</div>
+<div class="grid g-main">
+  <div class="stack">
+    <section class="card">
+      <div class="card-head"><h2>Ejemplares ({{ units|length }})</h2><span class="small muted">{{ av.available }} disponible{{ av.available|pluralize }} hoy</span></div>
+      <div class="table-wrap"><table class="table responsive">
+        <thead><tr><th>Código</th><th>Estado</th><th>Condición</th><th>Ubicación</th><th>Cambiar estado</th></tr></thead>
+        <tbody>
+        {% for u in units %}
+          <tr><td class="cell-main mono"><strong>{{ u.serial }}</strong>{% if u.notes %}<div class="small subtle">{{ u.notes }}</div>{% endif %}</td>
+          <td data-label="Estado">{% badge u.state u.get_state_display %}</td><td data-label="Condición">{{ u.get_condition_display }}</td><td data-label="Ubicación">{{ u.location|default:"—" }}</td>
+          <td data-label="Acción">{% if u.state != 'prestado' %}
+            <form class="cluster" method="post" action="{% url 'catalog:unit_state' r.pk u.pk %}" style="--gap:.35rem">{% csrf_token %}
+              <label class="sr-only" for="st-{{ u.pk }}">Nuevo estado</label>
+              <select class="select" id="st-{{ u.pk }}" name="state" style="min-height:34px;padding:.2rem .5rem;width:auto">{% for v,l in unit_states %}{% if v != 'prestado' %}<option value="{{ v }}" {% if v == u.state %}selected{% endif %}>{{ l }}</option>{% endif %}{% endfor %}</select>
+              <label class="sr-only" for="nt-{{ u.pk }}">Causa</label><input class="input" id="nt-{{ u.pk }}" name="note" placeholder="Causa (obligatoria si no queda disponible)" style="min-height:34px;width:200px">
+              <button class="btn btn-sm" type="submit">Aplicar</button></form>
+          {% else %}<span class="small muted">Registra la devolución desde el préstamo</span>{% endif %}</td></tr>
+        {% empty %}<tr><td colspan="5"><div class="empty"><h3>Sin ejemplares</h3><p>Registra al menos uno para poder publicar el recurso.</p></div></td></tr>{% endfor %}
+        </tbody></table></div>
+      <form class="card-foot" method="post" action="{% url 'catalog:add_unit' r.pk %}">{% csrf_token %}
+        <div class="cluster" style="align-items:flex-end">
+          <div class="field" style="flex:1 1 150px"><label class="label" for="id_serial">Código del ejemplar</label>{{ unit_form.serial }}</div>
+          <div class="field" style="flex:1 1 130px"><label class="label" for="id_condition">Condición</label>{{ unit_form.condition }}</div>
+          <div class="field" style="flex:1 1 180px"><label class="label" for="id_location">Ubicación</label>{{ unit_form.location }}</div>
+          <button class="btn btn-primary" type="submit">{% icon 'plus' %} Registrar ejemplar</button>
+        </div>
+      </form>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2>Movimientos de inventario</h2><span class="small muted">Solo inserción · no se editan</span></div>
+      <ul class="list">{% for m in movements %}
+        <li class="list-item"><span class="list-icon">{% icon 'history' %}</span><div class="list-main"><div class="list-title">{{ m.get_kind_display }} · <span class="mono">{{ m.unit.serial }}</span>{% if m.loan_request %} · <a href="{% url 'loans:manage_detail' m.loan_request_id %}">{{ m.loan_request.folio }}</a>{% endif %}</div>
+          <div class="list-meta">{{ m.created_at|date:"d/m/Y H:i" }} · {{ m.actor|default:"sistema" }}{% if m.state_before or m.state_after %} · {{ m.state_before|default:"—" }} → {{ m.state_after|default:"—" }}{% endif %}{% if m.note %} · {{ m.note }}{% endif %}</div></div></li>
+      {% empty %}<li class="list-item muted small">Sin movimientos.</li>{% endfor %}</ul>
+    </section>
+  </div>
+  <aside class="stack">
+    <div class="card card-pad"><h2 style="font-size:1rem">Ficha</h2>
+      <dl class="dl" style="grid-template-columns:120px 1fr"><dt>Préstamo máx.</dt><dd>{{ r.max_loan_days|default:"Política del campus" }} días</dd><dt>Ubicación</dt><dd>{{ r.location|default:"—" }}</dd><dt>Acceso</dt><dd>{{ r.location.access_rules|default:"—" }}</dd><dt>Etiquetas</dt><dd>{% tags_list r.tags %}</dd></dl></div>
+    <div class="card"><div class="card-head"><h2 style="font-size:1rem">Solicitudes recientes</h2></div>
+      <ul class="list">{% for l in loans %}<li><a class="list-item" href="{% url 'loans:manage_detail' l.pk %}"><div class="list-main"><div class="list-title mono">{{ l.folio }}</div><div class="list-meta">{{ l.start_date|date:"d/m" }} – {{ l.due_date|date:"d/m" }}{% if l.unit %} · {{ l.unit.serial }}{% endif %}</div></div>{% status l %}</a></li>{% empty %}<li class="list-item small muted">Sin solicitudes.</li>{% endfor %}</ul></div>
+  </aside>
+</div>
+{% endblock %}

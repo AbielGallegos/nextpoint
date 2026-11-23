@@ -1,0 +1,21 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}Auditoría{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'history' 'i-sm' %} Gobierno</div><h1>Bitácora de auditoría</h1><p>Registro de solo inserción: actor, acción, fecha, entidad y estados anterior y nuevo. No guarda contraseñas, tokens ni el texto de los casos.</p></div></div>
+<form class="card filters" method="get">
+  <div class="field"><label class="label" for="ac">Módulo</label><select class="select" id="ac" name="accion"><option value="">Todos</option>{% for p in prefixes %}<option value="{{ p }}" {% if f.accion == p %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
+  <div class="field"><label class="label" for="tp">Tipo</label><select class="select" id="tp" name="tipo"><option value="">Todos</option><option value="negocio" {% if f.tipo == 'negocio' %}selected{% endif %}>Negocio</option><option value="seguridad" {% if f.tipo == 'seguridad' %}selected{% endif %}>Seguridad</option></select></div>
+  <div class="field"><label class="label" for="aq">Folio o actor</label><input class="input" id="aq" name="q" value="{{ f.q }}"></div>
+  <button class="btn" type="submit">{% icon 'filter' %} Filtrar</button>
+</form>
+<div class="card mt-2"><div class="table-wrap"><table class="table responsive">
+  <thead><tr><th>Fecha y hora</th><th>Actor</th><th>Acción</th><th>Entidad</th><th>Antes → después</th><th>Traza</th></tr></thead>
+  <tbody>{% for e in page %}
+    <tr><td class="cell-main nowrap">{{ e.created_at|date:"d/m/Y H:i:s" }}{% if e.kind == 'seguridad' %} <span class="badge t-info">{% icon 'shield-check' %}Seguridad</span>{% endif %}</td>
+      <td data-label="Actor">{{ e.actor_label }}</td><td data-label="Acción" class="mono small">{{ e.action }}</td>
+      <td data-label="Entidad">{{ e.target_label|default:"—" }}{% if e.area %}<div class="small subtle">{{ e.area }}</div>{% endif %}</td>
+      <td data-label="Cambio" class="small">{% if e.status_before or e.status_after %}{{ e.status_before|default:"—" }} → <strong>{{ e.status_after|default:"—" }}</strong>{% else %}—{% endif %}</td>
+      <td data-label="Traza" class="mono small subtle">{{ e.trace_id|default:"—" }}</td></tr>
+  {% empty %}<tr><td colspan="6"><div class="empty"><h3>Sin eventos</h3></div></td></tr>{% endfor %}</tbody>
+</table></div>{% include "partials/pagination.html" %}</div>
+{% endblock %}

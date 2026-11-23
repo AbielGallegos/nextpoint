@@ -1,0 +1,21 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}Comparar recomendaciones{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% if back|slice:':1' == '/' %}{{ back }}{% else %}{% url 'smartmatch:home' %}{% endif %}">SmartMatch</a>{% icon 'chevron-right' 'i-sm' %}<span>Comparar</span></nav>
+<div class="page-head"><div><h1>Comparar recomendaciones</h1><p>Mismos criterios y pesos para cada opción.</p></div></div>
+{% if chosen %}
+<div class="card"><div class="table-wrap"><table class="table">
+  <thead><tr><th scope="col">Criterio</th>{% for r in chosen %}<th scope="col">{{ r.candidate.title }}</th>{% endfor %}</tr></thead>
+  <tbody>
+    <tr><th scope="row">Puntaje total</th>{% for r in chosen %}<td><div class="score-ring" style="--v:{{ r.score }};width:50px;height:50px"><b style="font-size:.9rem">{{ r.score }}</b></div></td>{% endfor %}</tr>
+    {% for k, label in weight_labels %}<tr><th scope="row">{{ label }} (máx. {{ weights|get_item:k }})</th>{% for r in chosen %}<td><strong>{{ r.breakdown|get_item:k }}</strong></td>{% endfor %}</tr>{% endfor %}
+    <tr><th scope="row">Tipo</th>{% for r in chosen %}<td>{{ r.kind_label }}</td>{% endfor %}</tr>
+    <tr><th scope="row">Disponibilidad</th>{% for r in chosen %}<td>{{ r.candidate.availability_label }}</td>{% endfor %}</tr>
+    <tr><th scope="row">Campus</th>{% for r in chosen %}<td>{{ r.candidate.campus_name }}</td>{% endfor %}</tr>
+    <tr><th scope="row">Por qué aparece</th>{% for r in chosen %}<td class="small">{{ r.explanation }}</td>{% endfor %}</tr>
+    <tr><th scope="row"></th>{% for r in chosen %}<td><a class="btn btn-sm btn-primary" href="{{ r.candidate.url }}">{{ r.candidate.action_label }}</a></td>{% endfor %}</tr>
+  </tbody></table></div></div>
+{% else %}
+<div class="card empty"><h3>Selecciona al menos dos recomendaciones</h3><a class="btn btn-primary" href="{% url 'smartmatch:home' %}">Volver a SmartMatch</a></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,9 @@
+{% load np %}{% if page.paginator.num_pages > 1 %}
+<nav class="pagination" aria-label="Paginación">
+  <span class="muted">Página {{ page.number }} de {{ page.paginator.num_pages }} · {{ page.paginator.count }} registros</span>
+  <span class="cluster">
+    {% if page.has_previous %}<a class="btn btn-sm" href="{% qs page=page.previous_page_number %}">{% icon 'chevron-left' 'i-sm' %} Anterior</a>{% endif %}
+    {% if page.has_next %}<a class="btn btn-sm" href="{% qs page=page.next_page_number %}">Siguiente {% icon 'chevron-right' 'i-sm' %}</a>{% endif %}
+  </span>
+</nav>
+{% elif page.paginator.count %}<div class="pagination"><span class="muted">{{ page.paginator.count }} registro{{ page.paginator.count|pluralize }}</span></div>{% endif %}

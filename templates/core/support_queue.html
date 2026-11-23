@@ -1,0 +1,9 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}Soporte técnico{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'life-buoy' 'i-sm' %} Soporte NextPoint</div><h1>Tickets técnicos</h1><p>Problemas de cuenta o navegación. Soporte no tiene acceso a los casos ni préstamos de estudiantes.</p></div></div>
+<div class="chips"><a class="chip {% if not status %}is-active{% endif %}" href="?">Todos</a>{% for v,l in statuses %}<a class="chip {% if status == v %}is-active{% endif %}" href="?estado={{ v }}">{{ l }}</a>{% endfor %}</div>
+<div class="card mt-2"><div class="table-wrap"><table class="table responsive"><thead><tr><th>Folio</th><th>Asunto</th><th>Categoría</th><th>Asignado</th><th>Estado</th></tr></thead><tbody>
+  {% for t in page %}<tr><td class="cell-main"><a class="row-link mono" href="{% url 'core:support_detail' t.pk %}">{{ t.folio }}</a></td><td data-label="Asunto">{{ t.subject }}</td><td data-label="Categoría">{{ t.get_category_display }}</td><td data-label="Asignado">{{ t.assignee|default:"—" }}</td><td data-label="Estado">{% status t %}</td></tr>
+  {% empty %}<tr><td colspan="5"><div class="empty"><h3>Sin tickets</h3></div></td></tr>{% endfor %}</tbody></table></div>{% include "partials/pagination.html" %}</div>
+{% endblock %}

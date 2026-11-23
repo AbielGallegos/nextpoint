@@ -1,0 +1,8 @@
+{% extends "accounts/_auth_card.html" %}{% load np %}
+{% block title %}Invitación no disponible{% endblock %}
+{% block card %}
+<div class="empty-icon" style="margin:0 0 1rem;background:var(--warn-100);color:var(--warn-700)">{% icon 'alert-triangle' 'i-lg' %}</div>
+<h1>Invitación no disponible</h1>
+<p class="muted">La invitación ya se utilizó, caducó o fue revocada. Pide a la persona responsable que emita una nueva.</p>
+<a class="btn btn-primary" href="{% url 'accounts:login' %}">Ir a iniciar sesión</a>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}Configuración{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'settings' 'i-sm' %} Configuración</div><h1>Parámetros operativos</h1><p>Valores versionados {% if campus %}para {{ campus }}{% else %}globales de la plataforma{% endif %}. Cada cambio crea una nueva versión y queda en auditoría. Son políticas de ejemplo, no aprobadas institucionalmente.</p></div></div>
+<div class="card"><div class="table-wrap"><table class="table responsive"><thead><tr><th>Parámetro</th><th>Valor vigente</th><th>Versión</th><th>Cambiar</th></tr></thead><tbody>
+  {% for r in rows %}<tr><td class="cell-main"><strong class="mono small">{{ r.key }}</strong><div class="small muted">{{ r.desc }}</div></td>
+    <td data-label="Valor">{% if r.typ == 'bool' %}{% if r.value %}{% badge 'activo' 'Habilitado' %}{% else %}{% badge 'desactivado' 'Deshabilitado' %}{% endif %}{% else %}<strong>{{ r.value }}</strong>{% endif %}</td>
+    <td data-label="Versión" class="small">{% if r.version %}v{{ r.version }} · {{ r.by }} · {{ r.at|date:"d/m/Y" }}{% else %}predeterminado{% endif %}</td>
+    <td data-label="Cambiar">{% if r.locked %}<span class="small muted">{% icon 'lock' 'i-sm' %} Bloqueado en el prototipo</span>{% else %}
+      <form class="cluster" method="post" style="--gap:.35rem">{% csrf_token %}<input type="hidden" name="key" value="{{ r.key }}">
+        {% if r.typ == 'bool' %}<select class="select" name="value" aria-label="Nuevo valor de {{ r.key }}" style="min-height:34px;width:auto"><option value="1" {% if r.value %}selected{% endif %}>Habilitado</option><option value="0" {% if not r.value %}selected{% endif %}>Deshabilitado</option></select>
+        {% else %}<input class="input" type="number" name="value" min="{{ r.lo }}" max="{{ r.hi }}" value="{{ r.value }}" aria-label="Nuevo valor de {{ r.key }}" style="min-height:34px;width:100px">{% endif %}
+        <button class="btn btn-sm" type="submit">Guardar</button></form>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

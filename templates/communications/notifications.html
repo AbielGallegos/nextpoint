@@ -1,0 +1,21 @@
+{% extends base %}{% load np %}
+{% block title %}Notificaciones{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'bell' 'i-sm' %} Centro interno</div><h1>Notificaciones</h1><p>Eventos de tus solicitudes, préstamos, cursos y avisos. Al abrir una, el destino vuelve a verificar tus permisos.</p></div>
+  {% if unread %}<form method="post" action="{% url 'communications:notifications_read_all' %}">{% csrf_token %}<button class="btn" type="submit">{% icon 'check' %} Marcar todas como leídas</button></form>{% endif %}</div>
+<div class="chips"><a class="chip {% if tab == 'todas' %}is-active{% endif %}" href="?vista=todas">Todas</a><a class="chip {% if tab == 'no_leidas' %}is-active{% endif %}" href="?vista=no_leidas">Sin leer <span class="count">{{ unread }}</span></a></div>
+<div class="card mt-2">
+  <ul class="list">
+  {% for n in page %}
+    <li class="list-item {% if not n.is_read %}unread{% endif %}">
+      <span class="list-icon">{% if n.event_type == 'loan' %}{% icon 'package' %}{% elif n.event_type == 'case' %}{% icon 'clipboard-list' %}{% elif n.event_type == 'alert' %}{% icon 'megaphone' %}{% elif n.event_type == 'course' %}{% icon 'graduation-cap' %}{% else %}{% icon 'bell' %}{% endif %}</span>
+      <div class="list-main"><div class="list-title">{{ n.title }}</div><div class="list-meta">{% if n.body %}{{ n.body }} · {% endif %}{{ n.created_at|date:"d/m/Y H:i" }}</div></div>
+      <form method="post" action="{% url 'communications:notification_open' n.pk %}">{% csrf_token %}<button class="btn btn-sm" type="submit">{% if n.target_url %}Abrir{% else %}Marcar leída{% endif %}</button></form>
+    </li>
+  {% empty %}
+    <li><div class="empty"><div class="empty-icon">{% icon 'bell' 'i-lg' %}</div><h3>Sin notificaciones</h3><p>Te avisaremos cuando cambie el estado de tus gestiones.</p></div></li>
+  {% endfor %}
+  </ul>
+  {% include "partials/pagination.html" %}
+</div>
+{% endblock %}

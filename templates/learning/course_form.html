@@ -1,0 +1,19 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}{% if course %}Editar curso{% else %}Nuevo curso{% endif %}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'learning:manage_list' %}">Cursos</a>{% icon 'chevron-right' 'i-sm' %}<span>{% if course %}{{ course.title }}{% else %}Nuevo{% endif %}</span></nav>
+<div class="page-head"><div><h1>{% if course %}Editar curso{% else %}Nuevo curso{% endif %}</h1><p>Se guarda como borrador. Agrega lecciones y envíalo a revisión cuando esté listo.</p></div></div>
+<form class="card" method="post" novalidate style="max-width:900px">{% csrf_token %}
+  <div class="card-body">
+    {% if form.errors %}<div class="error-summary" role="alert">Revisa los campos marcados.</div>{% endif %}
+    <div class="form-grid mt-1">
+      {% field form.title wide=True %}{% field form.summary wide=True %}{% field form.description wide=True %}
+      {% field form.level %}{% field form.mode %}{% field form.duration_minutes %}{% field form.capacity %}
+      {% field form.area %}{% field form.tags_text %}
+      {% field form.content_license_ok wide=True %}
+    </div>
+    <p class="help mt-2">Los cursos son gratuitos en el prototipo: no hay pagos ni constancias oficiales.</p>
+  </div>
+  <div class="card-foot form-actions" style="margin:0"><a class="btn btn-ghost" href="{% url 'learning:manage_list' %}">Cancelar</a><button class="btn btn-primary" type="submit">Guardar borrador</button></div>
+</form>
+{% endblock %}

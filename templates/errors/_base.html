@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% load static np %}
+{% block body %}
+<main id="contenido" class="error-page">
+  <div style="max-width:520px">
+    <a href="{% url 'core:landing' %}"><img src="{% static 'img/nextpoint-icon.png' %}" alt="NextPoint" width="56" height="54" style="margin:0 auto 1.4rem;height:54px;width:auto"></a>
+    {% block err %}{% endblock %}
+    <div class="cluster" style="justify-content:center;margin-top:1.4rem">
+      {% if user.is_authenticated %}<a class="btn btn-primary" href="{% url 'core:home_redirect' %}">Ir a mi inicio</a>{% else %}<a class="btn btn-primary" href="{% url 'accounts:login' %}">Iniciar sesión</a>{% endif %}
+      <a class="btn" href="{% url 'core:help' %}">Centro de ayuda</a>
+    </div>
+  </div>
+</main>
+{% endblock %}

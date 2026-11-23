@@ -1,0 +1,51 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}Usuarios y roles{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">{% icon 'users' 'i-sm' %} Gobierno</div><h1>Usuarios y roles</h1>
+  <p>Cuentas dentro de tu alcance. Los correos se muestran minimizados; los cambios de rol y estado quedan auditados.</p></div>
+  {% if can_manage %}<a class="btn btn-primary" href="{% url 'accounts:invite' %}">{% icon 'user-plus' %} Invitar cuenta</a>{% endif %}
+</div>
+<div class="card">
+  <form class="filters" method="get" role="search">
+    <div class="field"><label class="label" for="f-q">Buscar</label><input class="input" id="f-q" name="q" value="{{ filters.q }}" placeholder="Nombre o correo"></div>
+    <div class="field"><label class="label" for="f-rol">Rol</label><select class="select" id="f-rol" name="rol"><option value="">Todos</option>{% for r in roles %}<option value="{{ r.code }}" {% if filters.rol == r.code %}selected{% endif %}>{{ r.name }}</option>{% endfor %}</select></div>
+    <div class="field"><label class="label" for="f-estado">Estado</label><select class="select" id="f-estado" name="estado"><option value="">Todos</option>{% for v, l in statuses %}<option value="{{ v }}" {% if filters.estado == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <button class="btn" type="submit">{% icon 'filter' %} Filtrar</button>
+  </form>
+  <div class="table-wrap">
+  <table class="table responsive">
+    <thead><tr><th>Persona</th><th>Roles y alcance</th><th>Campus</th><th>Estado</th><th>Último acceso</th></tr></thead>
+    <tbody>
+    {% for u in page %}
+      <tr>
+        <td class="cell-main"><a class="row-link" href="{% url 'accounts:user_detail' u.pk %}">{{ u.display_name }}</a><div class="small subtle mono">{{ u.masked_email }}</div></td>
+        <td data-label="Roles">{% for ur in roles_by_user|get_item:u.pk %}<span class="badge t-brand" title="{{ ur.scope_label }}">{{ ur.role.name }}{% if ur.area %} · {{ ur.area.code }}{% endif %}</span> {% empty %}<span class="subtle small">Sin roles</span>{% endfor %}</td>
+        <td data-label="Campus">{{ u.campus|default:"Plataforma" }}</td>
+        <td data-label="Estado">{% status u %}</td>
+        <td data-label="Último acceso" class="small muted">{{ u.last_login|date:"d/m/Y H:i"|default:"—" }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5"><div class="empty"><div class="empty-icon">{% icon 'users' 'i-lg' %}</div><h3>Sin cuentas con esos filtros</h3><p>Prueba quitar filtros.</p></div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% include "partials/pagination.html" %}
+</div>
+{% if can_manage %}
+<div class="card mt-3">
+  <div class="card-head"><h2>Invitaciones recientes</h2><span class="small muted">De un solo uso · caducan en 7 días</span></div>
+  <div class="table-wrap"><table class="table responsive">
+    <thead><tr><th>Invitado</th><th>Rol</th><th>Alcance</th><th>Emitida por</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+    {% for inv in invitations %}
+      <tr><td class="cell-main"><strong>{{ inv.display_name }}</strong><div class="small subtle">{{ inv.email }}</div></td>
+      <td data-label="Rol">{{ inv.role.name }}</td><td data-label="Alcance">{{ inv.area|default:inv.campus|default:"Plataforma" }}</td>
+      <td data-label="Emitida por">{{ inv.created_by }}</td><td data-label="Estado">{% badge inv.status %}</td>
+      <td class="text-right">{% if inv.usable %}<form method="post" action="{% url 'accounts:revoke_invitation' inv.pk %}">{% csrf_token %}<button class="btn btn-sm btn-danger" type="submit">Revocar</button></form>{% endif %}</td></tr>
+    {% empty %}<tr><td colspan="6" class="muted small" style="padding:1rem 1.25rem">Aún no hay invitaciones emitidas.</td></tr>{% endfor %}
+    </tbody></table></div>
+</div>
+{% endif %}
+{% endblock %}

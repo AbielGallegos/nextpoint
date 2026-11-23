@@ -1,0 +1,41 @@
+{% extends "base.html" %}{% load static np %}
+{% block body_class %}student-shell{% endblock %}
+{% block body %}
+<div class="demo-ribbon">Prototipo con datos sintéticos · ninguna información corresponde a personas o inventarios reales</div>
+<div class="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Navegación del estudiante">
+    <a class="sidebar-brand" href="{% url 'core:student_home' %}"><img src="{% static 'img/nextpoint-logo-dark.png' %}" alt="NextPoint" width="154" height="30"></a>
+    <ul class="nav">
+      <li><a href="{% url 'core:student_home' %}" {% nav_current '=/app/' %}>{% icon 'layout-dashboard' %} Inicio</a></li>
+      <li><a href="{% url 'smartmatch:home' %}" {% nav_current '/app/smartmatch/' %}>{% icon 'sparkles' %} SmartMatch</a></li>
+      <li><a href="{% url 'catalog:list' %}" {% nav_current '/app/materiales/' %}>{% icon 'package' %} Materiales</a></li>
+      <li><a href="{% url 'loans:mine' %}" {% nav_current '/app/prestamos/' %}>{% icon 'boxes' %} Mis préstamos</a></li>
+      <li><a href="{% url 'cases:mine' %}" {% nav_current '/app/solicitudes/' %}>{% icon 'clipboard-list' %} Solicitudes</a></li>
+      <li><a href="{% url 'learning:catalog' %}" {% nav_current '/app/cursos/' %}>{% icon 'graduation-cap' %} Cursos</a></li>
+      <li><a href="{% url 'communications:alerts' %}" {% nav_current '/app/avisos/' %}>{% icon 'megaphone' %} Avisos y oportunidades</a></li>
+    </ul>
+    <div class="nav-section">Cuenta</div>
+    <ul class="nav">
+      <li><a href="{% url 'communications:notifications' %}" {% nav_current '/app/notificaciones/' %}>{% icon 'bell' %} Notificaciones{% if unread_notifications %}<span class="count">{{ unread_notifications }}</span>{% endif %}</a></li>
+      <li><a href="{% url 'core:support_mine' %}" {% nav_current '/app/ayuda/' %}>{% icon 'life-buoy' %} Ayuda y soporte</a></li>
+      <li><a href="{% url 'accounts:profile' %}" {% nav_current '/cuenta/' %}>{% icon 'user' %} Mi perfil</a></li>
+    </ul>
+    <div class="sidebar-foot">
+      <div class="scope-card"><strong>{{ user.campus.name }}</strong>{{ user.campus.institution.name }}<br><span style="opacity:.75">Piloto propuesto · datos ficticios</span></div>
+    </div>
+  </aside>
+  <div class="drawer-backdrop" data-nav-close></div>
+  <div class="main">
+    {% url 'catalog:list' as search_action %}
+    {% include "partials/topbar.html" with search_action=search_action search_label="Buscar materiales…" %}
+    <main class="content" id="contenido" tabindex="-1">{% block content %}{% endblock %}</main>
+  </div>
+</div>
+<nav class="bottom-nav" aria-label="Navegación principal móvil">
+  <a href="{% url 'core:student_home' %}" {% nav_current '=/app/' %}>{% icon 'layout-dashboard' %}Inicio</a>
+  <a href="{% url 'smartmatch:home' %}" {% nav_current '/app/smartmatch/' %}>{% icon 'sparkles' %}SmartMatch</a>
+  <a href="{% url 'catalog:list' %}" {% nav_current '/app/materiales/' %}>{% icon 'package' %}Materiales</a>
+  <a href="{% url 'cases:mine' %}" {% nav_current '/app/solicitudes/' %}>{% icon 'clipboard-list' %}Solicitudes</a>
+  <a href="#sidebar" data-nav-toggle>{% icon 'menu' %}Más</a>
+</nav>
+{% endblock %}

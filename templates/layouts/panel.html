@@ -1,0 +1,50 @@
+{% extends "base.html" %}{% load static np %}
+{% block body_class %}panel-shell-body{% endblock %}
+{% block body %}
+<div class="demo-ribbon">Panel administrativo · prototipo con datos sintéticos</div>
+<div class="shell panel-shell">
+  <aside class="sidebar" id="sidebar" aria-label="Navegación administrativa">
+    <a class="sidebar-brand" href="{% url 'reporting:panel_home' %}" style="gap:.6rem">
+      <img src="{% static 'img/nextpoint-icon.png' %}" alt="" width="30" height="30" style="height:30px">
+      <span style="color:#fff;font-weight:750;font-size:1.05rem;letter-spacing:-.01em">NextPoint <span style="color:var(--accent-500);font-weight:600;font-size:.8rem">Panel</span></span>
+    </a>
+    <ul class="nav">
+      <li><a href="{% url 'reporting:panel_home' %}" {% nav_current '=/panel/' %}>{% icon 'layout-dashboard' %} Resumen</a></li>
+    </ul>
+    {% if perms_np.cases_manage or perms_np.cases_supervise or perms_np.cases_attend_assigned or perms_np.loans_manage or perms_np.loans_supervise %}
+    <div class="nav-section">Operación</div>
+    <ul class="nav">
+      {% if perms_np.cases_manage or perms_np.cases_supervise or perms_np.cases_attend_assigned %}<li><a href="{% url 'cases:queue' %}" {% nav_current '/panel/solicitudes/' %}>{% icon 'inbox' %} Solicitudes y casos</a></li>{% endif %}
+      {% if perms_np.loans_manage or perms_np.loans_supervise %}<li><a href="{% url 'loans:queue' %}" {% nav_current '/panel/prestamos/' %}>{% icon 'boxes' %} Préstamos</a></li>{% endif %}
+      {% if perms_np.catalog_manage %}<li><a href="{% url 'catalog:manage_list' %}" {% nav_current '/panel/recursos/' %}>{% icon 'package' %} Recursos e inventario</a></li>{% endif %}
+    </ul>
+    {% endif %}
+    <div class="nav-section">Contenido</div>
+    <ul class="nav">
+      {% if perms_np.smartmatch_test %}<li><a href="{% url 'smartmatch:rules' %}" {% nav_current '/panel/smartmatch/' %}>{% icon 'sparkles' %} SmartMatch</a></li>{% endif %}
+      {% if perms_np.courses_author or perms_np.courses_publish %}<li><a href="{% url 'learning:manage_list' %}" {% nav_current '/panel/cursos/' %}>{% icon 'graduation-cap' %} Cursos</a></li>{% endif %}
+      {% if perms_np.alerts_publish_area or perms_np.alerts_publish_campus %}<li><a href="{% url 'communications:manage_alerts' %}" {% nav_current '/panel/avisos/' %}>{% icon 'megaphone' %} Avisos</a></li>{% endif %}
+    </ul>
+    {% if perms_np.reports_view or perms_np.users_view or perms_np.audit_view or perms_np.platform_config or perms_np.platform_health or perms_np.support_attend %}
+    <div class="nav-section">Gobierno</div>
+    <ul class="nav">
+      {% if perms_np.reports_view %}<li><a href="{% url 'reporting:reports' %}" {% nav_current '/panel/informes/' %}>{% icon 'bar-chart-3' %} Informes</a></li>{% endif %}
+      {% if perms_np.users_view %}<li><a href="{% url 'accounts:users' %}" {% nav_current '/panel/usuarios/' %}>{% icon 'users' %} Usuarios y roles</a></li>{% endif %}
+      {% if perms_np.audit_view %}<li><a href="{% url 'reporting:audit' %}" {% nav_current '/panel/auditoria/' %}>{% icon 'history' %} Auditoría</a></li>{% endif %}
+      {% if perms_np.support_attend %}<li><a href="{% url 'core:support_queue' %}" {% nav_current '/panel/soporte/' %}>{% icon 'life-buoy' %} Soporte técnico</a></li>{% endif %}
+      {% if perms_np.platform_config %}<li><a href="{% url 'core:policies' %}" {% nav_current '/panel/configuracion/' %}>{% icon 'settings' %} Configuración</a></li>{% endif %}
+      {% if perms_np.platform_health %}<li><a href="{% url 'core:tech' %}" {% nav_current '/panel/tecnico/' %}>{% icon 'server' %} Estado técnico</a></li>{% endif %}
+    </ul>
+    {% endif %}
+    <div class="sidebar-foot">
+      <div class="scope-card"><strong>Tu alcance</strong>{% for s in panel_scopes %}{{ s }}{% if not forloop.last %}<br>{% endif %}{% empty %}{{ user.campus|default:"Plataforma" }}{% endfor %}</div>
+    </div>
+  </aside>
+  <div class="drawer-backdrop" data-nav-close></div>
+  <div class="main">
+    {% url 'cases:queue' as search_action %}
+    {% include "partials/topbar.html" with search_action=search_action search_label="Buscar folio o asunto…" %}
+    <main class="content" id="contenido" tabindex="-1">{% block content %}{% endblock %}</main>
+  </div>
+</div>
+{% endblock %}

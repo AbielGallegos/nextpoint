@@ -1,0 +1,61 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}SmartMatch · reglas{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'sparkles' 'i-sm' %} Contenido</div><h1>Reglas de SmartMatch</h1>
+  <p>Motor determinista con pesos versionados para {{ campus }}. Toda versión se valida (suma 100) y puede probarse en el simulador sin afectar la configuración activa.</p></div></div>
+<div class="grid g-main">
+  <div class="stack">
+    <section class="card"><div class="card-head"><h2>Simulador</h2><span class="small muted">No publica ni modifica nada</span></div>
+      <form class="filters" method="get"><input type="hidden" name="simular" value="1">
+        <div class="field"><label class="label" for="s-cat">Categoría</label><select class="select" id="s-cat" name="category">{% for c, l in categories %}<option value="{{ c }}" {% if sim.category == c %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+        <div class="field" style="flex:2 1 200px"><label class="label" for="s-tags">Etiquetas</label><input class="input" id="s-tags" name="tags" value="{{ sim.tags }}"></div>
+        <div class="field"><label class="label" for="s-rule">Versión</label><select class="select" id="s-rule" name="rule">{% for v in versions %}<option value="{{ v.pk }}" {% if sim_rule.pk == v.pk %}selected{% endif %}>v{{ v.version }} · {{ v.get_status_display }}</option>{% endfor %}</select></div>
+        <button class="btn btn-primary" type="submit">{% icon 'play-circle' %} Simular</button></form>
+      {% if sim_results is not None %}
+      <div class="table-wrap"><table class="table responsive"><thead><tr><th>Resultado</th><th>Tipo</th><th>Puntaje</th><th>Explicación</th></tr></thead><tbody>
+        {% for r in sim_results %}<tr><td class="cell-main"><strong>{{ r.candidate.title }}</strong></td><td data-label="Tipo">{{ r.candidate.kind }}</td><td data-label="Puntaje"><strong>{{ r.score }}</strong></td><td data-label="Explicación" class="small">{{ r.explanation }}</td></tr>
+        {% empty %}<tr><td colspan="4"><div class="empty"><h3>Sin coincidencias</h3><p>Con esta versión y criterios no hay resultados por encima del puntaje mínimo.</p></div></td></tr>{% endfor %}
+      </tbody></table></div>{% endif %}
+    </section>
+    <section class="card"><div class="card-head"><h2>Versiones</h2></div>
+      <div class="table-wrap"><table class="table responsive"><thead><tr><th>Versión</th>{% for k,l in weight_labels %}<th>{{ l }}</th>{% endfor %}<th>Mínimo</th><th>Estado</th><th></th></tr></thead><tbody>
+        {% for v in versions %}<tr><td class="cell-main"><strong>v{{ v.version }}</strong><div class="small subtle">{{ v.created_at|date:"d/m/Y" }}{% if v.created_by %} · {{ v.created_by }}{% endif %}</div></td>
+          <td data-label="Categoría">{{ v.w_category }}</td><td data-label="Etiquetas">{{ v.w_tags }}</td><td data-label="Campus">{{ v.w_campus }}</td><td data-label="Disponibilidad">{{ v.w_availability }}</td><td data-label="Vigencia">{{ v.w_freshness }}</td><td data-label="Mínimo">{{ v.min_score }}</td>
+          <td data-label="Estado">{% status v %}{% if v.validation_errors %} <span class="badge t-danger">{% icon 'alert-triangle' %}Inválida</span>{% endif %}</td>
+          <td>{% if can_publish and v.status == 'borrador' %}<form method="post" action="{% url 'smartmatch:activate' v.pk %}">{% csrf_token %}<button class="btn btn-sm btn-primary" type="submit">Activar</button></form>{% endif %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+  </div>
+  <aside class="stack">
+    {% if can_publish %}
+    <form class="card card-pad" method="post" action="{% url 'smartmatch:save_draft' %}">{% csrf_token %}
+      <h2 style="font-size:1rem">{% if draft %}Editar borrador v{{ draft.version }}{% else %}Nuevo borrador{% endif %}</h2>
+      {% with base=draft|default:active %}
+      <div class="form-grid" style="grid-template-columns:1fr 1fr">
+        <div class="field"><label class="label" for="w1">Categoría</label><input class="input" type="number" min="0" max="100" id="w1" name="w_category" value="{{ base.w_category|default:40 }}"></div>
+        <div class="field"><label class="label" for="w2">Etiquetas</label><input class="input" type="number" min="0" max="100" id="w2" name="w_tags" value="{{ base.w_tags|default:25 }}"></div>
+        <div class="field"><label class="label" for="w3">Campus</label><input class="input" type="number" min="0" max="100" id="w3" name="w_campus" value="{{ base.w_campus|default:15 }}"></div>
+        <div class="field"><label class="label" for="w4">Disponibilidad</label><input class="input" type="number" min="0" max="100" id="w4" name="w_availability" value="{{ base.w_availability|default:15 }}"></div>
+        <div class="field"><label class="label" for="w5">Vigencia</label><input class="input" type="number" min="0" max="100" id="w5" name="w_freshness" value="{{ base.w_freshness|default:5 }}"></div>
+        <div class="field"><label class="label" for="w6">Puntaje mínimo</label><input class="input" type="number" min="0" max="90" id="w6" name="min_score" value="{{ base.min_score|default:40 }}"></div>
+      </div>
+      {% endwith %}
+      <div class="field mt-1"><label class="label" for="wn">Nota del cambio</label><input class="input" id="wn" name="note" maxlength="200"></div>
+      <p class="help">Los pesos deben sumar 100. Un borrador inválido no se puede activar.</p>
+      <div class="form-actions"><button class="btn btn-primary btn-sm" type="submit">Guardar borrador</button></div>
+    </form>
+    {% else %}<div class="notice t-info">{% icon 'info' %}<div class="small">Puedes probar reglas en el simulador. Publicarlas corresponde a coordinación o administración.</div></div>{% endif %}
+    <div class="card"><div class="card-head"><h2 style="font-size:1rem">Necesidades</h2></div>
+      <ul class="list">{% for n in needs %}<li class="list-item"><div class="list-main"><div class="list-title">{{ n.label }}</div><div class="list-meta">{{ n.get_category_display }} · {{ n.tags|join:", " }}</div></div>
+        {% if can_publish %}<form method="post" action="{% url 'smartmatch:need_toggle' n.pk %}">{% csrf_token %}<button class="btn btn-sm {% if n.enabled %}btn-ghost{% endif %}" type="submit">{% if n.enabled %}Desactivar{% else %}Activar{% endif %}</button></form>{% else %}{% if n.enabled %}{% badge 'activa' 'Activa' %}{% else %}{% badge 'retirada' 'Inactiva' %}{% endif %}{% endif %}</li>{% endfor %}</ul>
+      {% if can_publish %}<form class="card-foot stack" style="--gap:.5rem" method="post" action="{% url 'smartmatch:need_save' %}">{% csrf_token %}
+        <input class="input" name="label" placeholder="Nombre de la necesidad" aria-label="Nombre de la necesidad" required>
+        <select class="select" name="category" aria-label="Categoría">{% for c,l in categories %}<option value="{{ c }}">{{ l }}</option>{% endfor %}</select>
+        <input class="input" name="tags" placeholder="etiquetas, separadas, por coma" aria-label="Etiquetas" required>
+        <button class="btn btn-sm" type="submit">{% icon 'plus' %} Agregar necesidad</button></form>{% endif %}
+    </div>
+    <div class="card card-pad"><h2 style="font-size:1rem">Uso agregado</h2><p class="small muted">{{ total_queries }} consulta{{ total_queries|pluralize }} registradas (sin texto libre ni datos sensibles).</p>
+      <ul class="list">{% for u in usage %}<li class="cluster between" style="padding:.25rem 0"><span>{{ u.category|default:"(sin categoría)"|capfirst }}</span><strong>{{ u.n }}</strong></li>{% empty %}<li class="small muted">Sin datos todavía.</li>{% endfor %}</ul></div>
+  </aside>
+</div>
+{% endblock %}

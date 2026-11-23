@@ -1,0 +1,48 @@
+{% extends "layouts/public.html" %}{% load np %}
+{% block title %}Iniciar sesión{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <section class="auth-side" aria-hidden="true">
+    <div style="max-width:440px">
+      <div class="eyebrow" style="color:var(--accent-500)">{% icon 'sparkles' 'i-sm' %} Prototipo funcional</div>
+      <h2>Tu siguiente paso, con seguimiento real.</h2>
+      <p>Encuentra materiales, solicita préstamos, da seguimiento a tus casos y descubre oportunidades. Cada acción queda registrada con folio.</p>
+      <ul class="stack" style="--gap:.6rem;list-style:none;padding:0;margin-top:1.4rem">
+        <li class="cluster">{% icon 'shield-check' %} Permisos verificados en servidor</li>
+        <li class="cluster">{% icon 'history' %} Historial y auditoría de cada operación</li>
+        <li class="cluster">{% icon 'sparkles' %} SmartMatch explicable, sin IA externa</li>
+      </ul>
+    </div>
+  </section>
+  <section class="auth-form">
+    <div class="auth-card">
+      <h1>Iniciar sesión</h1>
+      <p class="muted">Usa tu cuenta de NextPoint. Las cuentas privilegiadas se crean solo por invitación.</p>
+      {% if error %}
+      <div class="error-summary" role="alert" aria-live="assertive"><strong>No pudimos iniciar sesión.</strong><br>{{ error }}</div>
+      {% endif %}
+      <form method="post" class="mt-2" novalidate>
+        {% csrf_token %}
+        {{ form.next }}
+        {% field form.email %}
+        {% field form.password %}
+        <div class="cluster between mt-1">
+          <a class="small" href="{% url 'accounts:password_reset' %}">¿Olvidaste tu contraseña?</a>
+        </div>
+        <button class="btn btn-primary btn-lg w-full mt-2" type="submit" data-busy-label="Verificando…">Entrar {% icon 'arrow-right' %}</button>
+      </form>
+      {% if demo_accounts %}
+      <div class="card card-pad mt-3" style="background:var(--g-50)">
+        <h2 class="small" style="font-size:.9rem;margin:0">Cuentas de demostración</h2>
+        <p class="small muted mb-0">Elige un perfil para llenar el correo. La contraseña la proporciona el equipo y no se publica.</p>
+        <div class="demo-accounts">
+          {% for email, label in demo_accounts %}
+          <button type="button" data-fill-email="{{ email }}"><span class="mono">{{ email }}</span><span class="badge t-brand">{{ label }}</span></button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

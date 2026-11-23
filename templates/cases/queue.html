@@ -1,0 +1,35 @@
+{% extends "layouts/panel.html" %}{% load np humanize %}
+{% block title %}Solicitudes y casos{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'inbox' 'i-sm' %} Operación</div><h1>Bandeja de solicitudes</h1><p>Casos de tus áreas o asignados a ti, ordenados por antigüedad. El acuse confirma la recepción; no cierra el caso.</p></div></div>
+<div class="chips">
+  <a class="chip {% if status == 'pendientes' %}is-active{% endif %}" href="?estado=pendientes">Por atender <span class="count">{{ counts.pendientes }}</span></a>
+  <a class="chip {% if status == 'en_atencion' %}is-active{% endif %}" href="?estado=en_atencion">En atención <span class="count">{{ counts.en_atencion }}</span></a>
+  <a class="chip {% if status == 'resueltos' %}is-active{% endif %}" href="?estado=resueltos">Resueltos <span class="count">{{ counts.resueltos }}</span></a>
+  <a class="chip {% if status == 'cerrados' %}is-active{% endif %}" href="?estado=cerrados">Terminados <span class="count">{{ counts.cerrados }}</span></a>
+  <a class="chip {% if status == 'todos' %}is-active{% endif %}" href="?estado=todos">Todos <span class="count">{{ counts.todos }}</span></a>
+</div>
+<div class="card mt-2">
+  <form class="filters" method="get"><input type="hidden" name="estado" value="{{ status }}">
+    <div class="field"><label class="label" for="fq">Folio o asunto</label><input class="input" id="fq" name="q" value="{{ f.q }}"></div>
+    <div class="field"><label class="label" for="fa">Área</label><select class="select" id="fa" name="area"><option value="">Todas</option>{% for a in areas %}<option value="{{ a.pk }}" {% if f.area == a.pk|stringformat:"d" %}selected{% endif %}>{{ a }}</option>{% endfor %}</select></div>
+    <div class="field"><label class="label" for="fr">Responsable</label><select class="select" id="fr" name="responsable"><option value="">Cualquiera</option><option value="yo" {% if f.responsable == 'yo' %}selected{% endif %}>Asignados a mí</option><option value="sin" {% if f.responsable == 'sin' %}selected{% endif %}>Sin asignar</option></select></div>
+    <div class="field"><label class="label" for="fe">Antigüedad</label><select class="select" id="fe" name="antiguedad"><option value="">Cualquiera</option><option value="1" {% if f.antiguedad == '1' %}selected{% endif %}>Más de 1 día</option><option value="2" {% if f.antiguedad == '2' %}selected{% endif %}>Más de 2 días</option><option value="7" {% if f.antiguedad == '7' %}selected{% endif %}>Más de 7 días</option></select></div>
+    <button class="btn" type="submit">{% icon 'filter' %} Filtrar</button>
+  </form>
+  <div class="table-wrap"><table class="table responsive">
+    <thead><tr><th>Folio</th><th>Asunto</th><th>Área</th><th>Prioridad</th><th>Antigüedad</th><th>Responsable</th><th>Estado</th></tr></thead>
+    <tbody>
+    {% for c in page %}
+      <tr><td class="cell-main"><a class="row-link mono" href="{% url 'cases:manage_detail' c.pk %}">{{ c.folio }}</a></td>
+      <td data-label="Asunto">{{ c.subject|truncatechars:60 }}<div class="small subtle">{{ c.category }} · {{ c.creator.initials }}</div></td>
+      <td data-label="Área">{{ c.area }}</td><td data-label="Prioridad">{% badge c.priority c.get_priority_display %}</td>
+      <td data-label="Antigüedad" class="nowrap">{{ c.created_at|naturaltime }}</td>
+      <td data-label="Responsable">{{ c.assigned_to|default:"—" }}</td><td data-label="Estado">{% status c %}</td></tr>
+    {% empty %}
+      <tr><td colspan="7"><div class="empty"><div class="empty-icon">{% icon 'inbox' 'i-lg' %}</div><h3>Bandeja vacía</h3><p>No hay casos con estos filtros en tu alcance.</p></div></td></tr>
+    {% endfor %}
+    </tbody></table></div>
+  {% include "partials/pagination.html" %}
+</div>
+{% endblock %}

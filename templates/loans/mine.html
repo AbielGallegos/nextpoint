@@ -1,0 +1,26 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}Mis préstamos{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'boxes' 'i-sm' %} Materiales</div><h1>Mis préstamos</h1><p>Solicitudes, préstamos activos e historial. Solo tú y el área responsable pueden consultarlos.</p></div>
+  <a class="btn btn-primary" href="{% url 'catalog:list' %}">{% icon 'plus' %} Solicitar material</a></div>
+<div class="chips mb-0" role="tablist" aria-label="Vista">
+  <a class="chip {% if tab == 'activas' %}is-active{% endif %}" href="?vista=activas" role="tab" aria-selected="{% if tab == 'activas' %}true{% else %}false{% endif %}">En curso <span class="count">{{ counts.activas }}</span></a>
+  <a class="chip {% if tab == 'historial' %}is-active{% endif %}" href="?vista=historial" role="tab" aria-selected="{% if tab == 'historial' %}true{% else %}false{% endif %}">Historial <span class="count">{{ counts.historial }}</span></a>
+</div>
+<div class="card mt-2">
+  <div class="table-wrap"><table class="table responsive">
+    <thead><tr><th>Folio</th><th>Material</th><th>Fechas</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+    {% for l in page %}
+      <tr><td class="cell-main"><a class="row-link mono" href="{% url 'loans:my_detail' l.pk %}">{{ l.folio }}</a></td>
+        <td data-label="Material">{{ l.resource.name }}</td>
+        <td data-label="Fechas" class="nowrap">{{ l.start_date|date:"d/m/Y" }} – {{ l.due_date|date:"d/m/Y" }}</td>
+        <td data-label="Estado">{% status l %}{% if l.status == 'entregado' and l.due_date < today %} {% badge 'vencido' 'Vencido' 'danger' %}{% endif %}</td>
+        <td class="text-right"><a class="btn btn-sm" href="{% url 'loans:my_detail' l.pk %}">Ver seguimiento</a></td></tr>
+    {% empty %}
+      <tr><td colspan="5"><div class="empty"><div class="empty-icon">{% icon 'boxes' 'i-lg' %}</div><h3>{% if tab == 'activas' %}No tienes préstamos en curso{% else %}Aún no hay historial{% endif %}</h3><p>Busca un material en el catálogo y solicítalo en segundos.</p><a class="btn btn-primary" href="{% url 'catalog:list' %}">Ir al catálogo</a></div></td></tr>
+    {% endfor %}
+    </tbody></table></div>
+  {% include "partials/pagination.html" %}
+</div>
+{% endblock %}

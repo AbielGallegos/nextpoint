@@ -1,0 +1,25 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}Cursos y tutoriales{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'graduation-cap' 'i-sm' %} Formación</div><h1>Cursos y tutoriales</h1><p>Contenidos revisados por el área responsable antes de publicarse. Inscripción gratuita; los cursos de ejemplo no emiten constancias oficiales.</p></div></div>
+<div class="chips"><a class="chip {% if not level %}is-active{% endif %}" href="?">Todos</a>{% for v,l in levels %}<a class="chip {% if level == v %}is-active{% endif %}" href="?nivel={{ v }}">{{ l }}</a>{% endfor %}</div>
+{% if courses %}
+<div class="grid g-3 mt-2">
+  {% for c in courses %}
+  <article class="card resource-card">
+    <div class="thumb" style="background:linear-gradient(135deg,#efe9ff,#e8f0ff)">{% icon 'book-open' %}</div>
+    <div class="body">
+      <div class="cluster"><span class="badge t-brand">{{ c.get_level_display }}</span><span class="badge">{{ c.get_mode_display }}</span><span class="badge t-ok">Gratuito</span></div>
+      <h2 style="font-size:1.02rem;margin:0"><a href="{% url 'learning:detail' c.pk %}" style="color:var(--ink);text-decoration:none">{{ c.title }}</a></h2>
+      <p class="small muted mb-0">{{ c.summary }}</p>
+      <span class="small subtle">{% icon 'clock' 'i-sm' %} {{ c.duration_minutes }} min · {{ c.nlessons }} lección{{ c.nlessons|pluralize:"es" }}</span>
+      {% if c.enrollment %}<div class="progress mt-1 {% if c.pct == 100 %}is-done{% endif %}" role="progressbar" aria-valuenow="{{ c.pct }}" aria-valuemin="0" aria-valuemax="100" aria-label="Avance"><span style="width:{{ c.pct }}%"></span></div>{% endif %}
+    </div>
+    <div class="foot">{% if c.enrollment %}<span class="small"><strong>{{ c.pct }} %</strong> completado</span>{% else %}<span class="small muted">Sin inscripción</span>{% endif %}<a class="btn btn-sm btn-primary" href="{% url 'learning:detail' c.pk %}">{% if c.enrollment %}Continuar{% else %}Ver curso{% endif %}</a></div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty mt-2"><div class="empty-icon">{% icon 'graduation-cap' 'i-lg' %}</div><h3>No hay cursos publicados con este filtro</h3><p>Los cursos en borrador o en revisión no se muestran.</p></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends base %}{% load np %}
+{% block title %}Avisos y oportunidades{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'megaphone' 'i-sm' %} Comunicación</div><h1>Avisos y oportunidades</h1><p>Solo se muestran avisos vigentes dirigidos a tu campus y rol. Tu lectura es privada.</p></div></div>
+<div class="chips">
+  <a class="chip {% if tab == 'todos' %}is-active{% endif %}" href="?vista=todos">Vigentes <span class="count">{{ counts.todos }}</span></a>
+  <a class="chip {% if tab == 'no_leidos' %}is-active{% endif %}" href="?vista=no_leidos">Sin leer <span class="count">{{ counts.no_leidos }}</span></a>
+  <a class="chip {% if tab == 'oportunidades' %}is-active{% endif %}" href="?vista=oportunidades">{% icon 'trophy' 'i-sm' %}Oportunidades <span class="count">{{ counts.oportunidades }}</span></a>
+</div>
+<div class="card mt-2">
+  <ul class="list">
+  {% for a in items %}
+    <li><a class="list-item {% if not a.is_read %}unread{% endif %}" href="{% url 'communications:alert_detail' a.pk %}">
+      <span class="list-icon" style="{% if a.is_opportunity %}background:var(--accent-100);color:var(--accent-600){% else %}background:var(--brand-50);color:var(--brand-600){% endif %}">{% if a.is_opportunity %}{% icon 'trophy' %}{% else %}{% icon 'megaphone' %}{% endif %}</span>
+      <div class="list-main"><div class="list-title">{{ a.title }}</div><div class="list-meta">{{ a.summary|truncatechars:110 }}</div>
+        <div class="list-meta mt-1">{{ a.get_category_display }} · {% if a.campus %}{{ a.campus }}{% else %}Toda la institución{% endif %}{% if a.expires_at %} · vigente hasta {{ a.expires_at|date:"d/m/Y" }}{% endif %}</div></div>
+      {% if a.priority != 'normal' %}{% badge a.priority a.get_priority_display %}{% endif %}{% if a.is_read %}<span class="badge t-off">{% icon 'check' %}Leído</span>{% endif %}
+    </a></li>
+  {% empty %}
+    <li><div class="empty"><div class="empty-icon">{% icon 'megaphone' 'i-lg' %}</div><h3>Sin avisos en esta vista</h3><p>Cuando el personal publique avisos para tu campus aparecerán aquí.</p></div></li>
+  {% endfor %}
+  </ul>
+</div>
+{% endblock %}

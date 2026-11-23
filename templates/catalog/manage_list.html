@@ -1,0 +1,33 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}Recursos e inventario{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">{% icon 'package' 'i-sm' %} Operación</div><h1>Recursos e inventario</h1><p>Recursos y ejemplares de tus áreas. Las existencias solo cambian mediante movimientos registrados.</p></div>
+  <div class="cluster"><a class="btn" href="{% url 'catalog:categories' %}">{% icon 'tag' %} Categorías</a><a class="btn btn-primary" href="{% url 'catalog:manage_new' %}">{% icon 'plus' %} Nuevo recurso</a></div>
+</div>
+<div class="grid g-4 kpi-grid">
+  <div class="card kpi"><span class="kpi-icon">{% icon 'boxes' %}</span><div><div class="kpi-value">{{ total_units }}</div><div class="kpi-label">Ejemplares</div></div></div>
+  <div class="card kpi"><span class="kpi-icon t-ok">{% icon 'check-circle-2' %}</span><div><div class="kpi-value">{{ summary.disponible }}</div><div class="kpi-label">Disponibles</div></div></div>
+  <div class="card kpi"><span class="kpi-icon t-accent">{% icon 'package' %}</span><div><div class="kpi-value">{{ summary.prestado }}</div><div class="kpi-label">Prestados</div></div></div>
+  <div class="card kpi"><span class="kpi-icon t-danger">{% icon 'wrench' %}</span><div><div class="kpi-value">{{ summary.revision|add:summary.mantenimiento }}</div><div class="kpi-label">Revisión / mantenimiento</div></div></div>
+</div>
+<div class="card mt-3">
+  <form class="filters" method="get">
+    <div class="field"><label class="label" for="q">Buscar</label><input class="input" id="q" name="q" value="{{ q }}" placeholder="Nombre o código"></div>
+    <div class="field"><label class="label" for="estado">Estado</label><select class="select" id="estado" name="estado"><option value="">Todos</option>{% for v,l in statuses %}<option value="{{ v }}" {% if status == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <button class="btn" type="submit">{% icon 'filter' %} Filtrar</button>
+  </form>
+  <div class="table-wrap"><table class="table responsive">
+    <thead><tr><th>Recurso</th><th>Categoría</th><th>Área</th><th>Publicación</th><th>Disponibilidad</th></tr></thead>
+    <tbody>
+    {% for r in page %}
+      <tr><td class="cell-main"><a class="row-link" href="{% url 'catalog:manage_detail' r.pk %}">{{ r.name }}</a><div class="small subtle mono">{{ r.code }}</div></td>
+      <td data-label="Categoría">{{ r.category }}</td><td data-label="Área">{{ r.area }}</td><td data-label="Publicación">{% status r %}</td>
+      <td data-label="Disponibilidad"><span class="badge t-{{ r.av.tone }}">{{ r.av.available }}/{{ r.av.total }} · {{ r.av.label }}</span></td></tr>
+    {% empty %}
+      <tr><td colspan="5"><div class="empty"><div class="empty-icon">{% icon 'package' 'i-lg' %}</div><h3>Sin recursos</h3><p>Registra el primer recurso de tu área.</p></div></td></tr>
+    {% endfor %}
+    </tbody></table></div>
+  {% include "partials/pagination.html" %}
+</div>
+{% endblock %}

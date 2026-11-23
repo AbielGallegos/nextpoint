@@ -1,0 +1,40 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}Materiales{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">{% icon 'package' 'i-sm' %} Catálogo</div><h1>Materiales</h1>
+  <p>Disponibilidad calculada con los ejemplares registrados en {{ user.campus.name }}. Solicitar no equivale a aprobación: el área responsable revisa cada solicitud.</p></div>
+  <a class="btn" href="{% url 'smartmatch:home' %}?need=material-de-redes">{% icon 'sparkles' %} Que SmartMatch me oriente</a>
+</div>
+<form class="card filters" method="get" role="search" aria-label="Filtrar materiales">
+  <div class="field" style="flex:2 1 240px"><label class="label" for="q">Buscar</label><input class="input" id="q" name="q" value="{{ q }}" placeholder="Nombre, código o categoría"></div>
+  <div class="field"><label class="label" for="cat">Categoría</label><select class="select" id="cat" name="categoria"><option value="">Todas</option>{% for c in categories %}<option value="{{ c.slug }}" {% if cat == c.slug %}selected{% endif %}>{{ c.name }} ({{ c.n }})</option>{% endfor %}</select></div>
+  <label class="check" style="flex:0 0 auto;margin-bottom:.6rem"><input type="checkbox" name="disponibles" value="1" {% if only_available %}checked{% endif %}> Solo disponibles hoy</label>
+  <button class="btn btn-primary" type="submit">{% icon 'filter' %} Aplicar</button>
+  {% if q or cat or only_available %}<a class="btn btn-ghost" href="{% url 'catalog:list' %}">Limpiar</a>{% endif %}
+</form>
+<div class="chips mt-2" aria-label="Categorías">
+  <a class="chip {% if not cat %}is-active{% endif %}" href="?q={{ q|urlencode }}">Todas</a>
+  {% for c in categories %}<a class="chip {% if cat == c.slug %}is-active{% endif %}" href="?categoria={{ c.slug }}&q={{ q|urlencode }}">{% icon c.icon 'i-sm' %}{{ c.name }}<span class="count">{{ c.n }}</span></a>{% endfor %}
+</div>
+<p class="small muted mt-2" aria-live="polite">{{ items|length }} resultado{{ items|length|pluralize }}</p>
+{% if items %}
+<div class="grid g-3">
+  {% for r in items %}
+  <article class="card resource-card">
+    <div class="thumb">{% icon r.category.icon %}</div>
+    <div class="body">
+      <div class="cluster between"><span class="small subtle mono">{{ r.code }}</span><span class="badge t-{{ r.av.tone }}">{% if r.av.available %}{% icon 'check-circle-2' %}{% else %}{% icon 'clock' %}{% endif %}{{ r.av.label }}</span></div>
+      <h2 style="font-size:1.02rem;margin:0"><a class="row-link" style="text-decoration:none;color:var(--ink)" href="{% url 'catalog:detail' r.pk %}">{{ r.name }}</a></h2>
+      <p class="small muted mb-0">{{ r.description|truncatechars:110 }}</p>
+      <div>{% tags_list r.tags %}</div>
+    </div>
+    <div class="foot"><span class="small muted">{{ r.av.available }} de {{ r.av.operable }} disponible{{ r.av.operable|pluralize }}</span><a class="btn btn-sm btn-primary" href="{% url 'catalog:detail' r.pk %}">Ver ficha</a></div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty"><div class="empty-icon">{% icon 'search' 'i-lg' %}</div><h3>No encontramos materiales con esos filtros</h3><p>Prueba otra categoría o solicita orientación.</p>
+  <div class="cluster" style="justify-content:center"><a class="btn" href="{% url 'catalog:list' %}">Ver todo el catálogo</a><a class="btn btn-primary" href="{% url 'cases:new' %}">Pedir orientación</a></div></div>
+{% endif %}
+{% endblock %}

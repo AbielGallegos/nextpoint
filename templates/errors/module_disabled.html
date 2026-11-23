@@ -1,0 +1,7 @@
+{% extends "errors/_base.html" %}{% load np %}
+{% block title %}Módulo no disponible{% endblock %}
+{% block err %}
+<div class="error-code">SERVICE_UNAVAILABLE · 503</div>
+<h1>{{ module }} no está disponible por ahora</h1>
+<p class="muted">La coordinación desactivó temporalmente este módulo para tu campus. El resto de NextPoint sigue funcionando.</p>
+{% endblock %}

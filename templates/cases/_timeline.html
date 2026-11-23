@@ -1,0 +1,13 @@
+{% load np %}<ol class="timeline">
+{% for e in events %}
+  <li class="tl-item {% if e.visibility == 'interno' %}is-internal{% elif e.kind == 'estado' or e.kind == 'creado' %}is-status{% elif e.kind == 'mensaje' %}is-message{% endif %}">
+    <span class="tl-dot">{% if e.visibility == 'interno' %}{% icon 'lock' %}{% elif e.kind == 'mensaje' %}{% icon 'message-square' %}{% elif e.kind == 'asignacion' %}{% icon 'user' %}{% else %}{% icon 'check' %}{% endif %}</span>
+    <div class="tl-head">
+      {% if e.kind == 'estado' or e.kind == 'creado' %}{% badge e.status_after %}{% elif e.kind == 'mensaje' %}<strong>Mensaje</strong>{% elif e.kind == 'asignacion' %}<strong>Asignación</strong>{% elif e.kind == 'nota' %}<strong>Nota interna</strong> <span class="badge t-warn">{% icon 'eye-off' %}No visible al estudiante</span>{% else %}<strong>{{ e.get_kind_display }}</strong>{% endif %}
+      <span class="muted">{{ e.created_at|date:"d/m/Y H:i" }}</span>
+      <span class="subtle">· {% if e.actor_id == user.pk %}Tú{% elif staff_view %}{{ e.actor }}{% elif e.actor_id == req.creator_id %}Tú{% else %}{{ req.area.name }}{% endif %}</span>
+    </div>
+    {% if e.body %}<div class="tl-body">{{ e.body }}</div>{% endif %}
+  </li>
+{% endfor %}
+</ol>

@@ -1,0 +1,34 @@
+{% load np %}
+<header class="topbar">
+  <button class="icon-btn nav-toggle" type="button" data-nav-toggle aria-controls="sidebar" aria-expanded="false" aria-label="Abrir menú">{% icon 'menu' %}</button>
+  <form class="topbar-search" role="search" method="get" action="{{ search_action }}">
+    <label class="sr-only" for="topsearch">{{ search_label }}</label>
+    {% icon 'search' %}
+    <input class="input" id="topsearch" name="q" type="search" placeholder="{{ search_label }}" autocomplete="off">
+  </form>
+  <div class="topbar-actions">
+    <a class="icon-btn" href="{% url 'communications:notifications' %}" aria-label="Notificaciones{% if unread_notifications %}: {{ unread_notifications }} sin leer{% endif %}">
+      {% icon 'bell' %}{% if unread_notifications %}<span class="dot">{{ unread_notifications|stringformat:"d" }}</span>{% endif %}
+    </a>
+    <details class="user-menu">
+      <summary aria-label="Menú de la cuenta">
+        <span class="avatar" aria-hidden="true">{{ user.initials }}</span>
+        <span class="who"><strong>{{ user.display_name }}</strong><small>{{ role_names|join:", " }}</small></span>
+      </summary>
+      <div class="menu-pop">
+        <div style="padding:.5rem .65rem .6rem;border-bottom:1px solid var(--g-150);margin-bottom:.3rem">
+          <strong style="display:block;font-size:.9rem">{{ user.display_name }}</strong>
+          <span class="small muted">{{ user.email }}</span><br>
+          <span class="small subtle">{{ user.campus|default:"Plataforma" }}</span>
+        </div>
+        <a href="{% url 'accounts:profile' %}">{% icon 'user' %} Mi cuenta</a>
+        {% if is_student_user and is_staff_user %}<a href="{% url 'core:student_home' %}">{% icon 'layout-dashboard' %} Portal del estudiante</a>{% endif %}
+        {% if is_staff_user %}<a href="{% url 'reporting:panel_home' %}">{% icon 'shield-check' %} Panel administrativo</a>{% endif %}
+        <a href="{% url 'core:support_mine' %}">{% icon 'life-buoy' %} Soporte técnico</a>
+        <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+          <button type="submit">{% icon 'log-out' %} Cerrar sesión</button>
+        </form>
+      </div>
+    </details>
+  </div>
+</header>

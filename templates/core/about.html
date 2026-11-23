@@ -1,0 +1,16 @@
+{% extends "layouts/public.html" %}{% load np %}
+{% block title %}Acerca del proyecto{% endblock %}
+{% block content %}
+<section class="pub-section"><div class="pub-wrap" style="max-width:860px">
+  <div class="eyebrow">{% icon 'info' 'i-sm' %} Acerca del proyecto</div>
+  <h1>NextPoint es un prototipo, no un servicio institucional en operación</h1>
+  <p class="lead muted">Plataforma web de apoyo a la gestión de recursos, solicitudes y oportunidades educativas. El escenario propuesto para un piloto es el Instituto Tecnológico de Morelia, Campus 2, sin convenio ni autorización presumidos.</p>
+  <div class="grid g-2 mt-3">
+    <div class="card card-pad"><h3>Público objetivo</h3><p class="muted mb-0">Estudiantes de educación superior y el personal que gestiona materiales, servicios y comunicaciones en un campus.</p></div>
+    <div class="card card-pad"><h3>Alcance de esta versión</h3><p class="muted mb-0">Acceso por perfiles, recorrido completo del estudiante, revisión administrativa y flujos de solicitud y cierre con datos ficticios.</p></div>
+    <div class="card card-pad"><h3>Lo que no hace</h3><p class="muted mb-0">No gestiona calificaciones, pagos, expedientes, certificados oficiales ni usa credenciales institucionales.</p></div>
+    <div class="card card-pad"><h3>Equipo</h3><p class="muted mb-0">Cid (dirección), Abiel (tecnología), Azul (operaciones y soporte), Raúl (vinculación) y José Ángel (administración y finanzas). Proyecto académico; no son personal contratado de la institución.</p></div>
+  </div>
+  <div class="notice t-info mt-3">{% icon 'info' %}<div>La evidencia de necesidad proviene de un estudio exploratorio del equipo (261 participantes). Mide percepciones, no el uso de NextPoint.</div></div>
+</div></section>
+{% endblock %}

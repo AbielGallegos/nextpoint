@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% load static np %}
+{% block body %}
+<header class="pub-header">
+  <div class="pub-wrap pub-nav">
+    <a href="{% url 'core:landing' %}" aria-label="NextPoint, inicio"><img src="{% static 'img/nextpoint-logo-dark.png' %}" alt="NextPoint" width="164" height="32"></a>
+    <nav class="pub-links" aria-label="Sitio público">
+      <a href="{% url 'core:landing' %}#modulos">Módulos</a>
+      <a href="{% url 'core:about' %}">Acerca del proyecto</a>
+      <a href="{% url 'core:help' %}">Ayuda</a>
+      {% if user.is_authenticated %}
+        <a class="btn btn-primary btn-sm" href="{% url 'core:home_redirect' %}">Ir a mi espacio {% icon 'arrow-right' 'i-sm' %}</a>
+      {% else %}
+        <a class="btn btn-primary btn-sm" href="{% url 'accounts:login' %}">Iniciar sesión</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+<main id="contenido">{% block content %}{% endblock %}</main>
+<footer class="pub-footer">
+  <div class="pub-wrap cluster between">
+    <span>© 2026 Equipo NextPoint · Prototipo funcional con datos sintéticos · v{{ NP_VERSION }}</span>
+    <span>Piloto propuesto para un campus de educación superior. No representa un convenio institucional.</span>
+  </div>
+</footer>
+{% endblock %}

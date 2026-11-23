@@ -1,0 +1,67 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}{{ target.display_name }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'accounts:users' %}">Usuarios</a>{% icon 'chevron-right' 'i-sm' %}<span>{{ target.display_name }}</span></nav>
+<div class="page-head">
+  <div class="cluster"><span class="avatar" style="width:52px;height:52px;font-size:1.05rem">{{ target.initials }}</span>
+    <div><h1 class="mb-0">{{ target.display_name }}</h1><span class="muted mono small">{{ target.masked_email }}</span> · {% status target %}</div></div>
+  {% if can_manage %}
+    {% if target.status == 'activo' %}
+      <button class="btn btn-danger" data-confirm-dialog="dlg-suspend">{% icon 'ban' %} Suspender cuenta</button>
+    {% else %}
+      <form method="post" action="{% url 'accounts:set_status' target.pk %}">{% csrf_token %}<input type="hidden" name="status" value="activo"><button class="btn btn-primary" type="submit">{% icon 'check' %} Reactivar</button></form>
+    {% endif %}
+  {% endif %}
+</div>
+<div class="grid g-main">
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>Roles y alcance</h2></div>
+      <ul class="list">
+        {% for a in assignments %}
+        <li class="list-item"><span class="list-icon">{% icon 'shield-check' %}</span>
+          <div class="list-main"><div class="list-title">{{ a.role.name }}</div><div class="list-meta">{{ a.scope_label }} · otorgado {{ a.granted_at|date:"d/m/Y" }}{% if a.granted_by %} por {{ a.granted_by }}{% endif %}</div></div>
+          {% if can_manage %}<form method="post" action="{% url 'accounts:revoke_role' target.pk a.pk %}">{% csrf_token %}<button class="btn btn-sm btn-danger" type="submit">Retirar</button></form>{% endif %}
+        </li>
+        {% empty %}<li class="list-item muted">Sin roles: acceso denegado por defecto.</li>{% endfor %}
+      </ul>
+      {% if can_manage and form %}
+      <form class="card-foot" method="post" action="{% url 'accounts:assign_role' target.pk %}">{% csrf_token %}
+        <div class="cluster" style="align-items:flex-end">
+          <div class="field" style="flex:1 1 200px">{{ form.role.label_tag }}{{ form.role }}</div>
+          <div class="field" style="flex:1 1 200px">{{ form.area.label_tag }}{{ form.area }}</div>
+          <button class="btn btn-primary" type="submit">{% icon 'plus' %} Asignar rol</button>
+        </div>
+        <p class="help mt-1 mb-0">Gestor: requiere área; solo verá y operará registros de esa área. El cambio queda en auditoría con estado anterior y nuevo.</p>
+      </form>
+      {% endif %}
+    </div>
+    {% if history %}
+    <div class="card">
+      <div class="card-head"><h2>Historial de la cuenta</h2></div>
+      <ul class="list">{% for h in history %}<li class="list-item"><span class="list-icon">{% icon 'history' %}</span><div class="list-main"><div class="list-title mono" style="font-size:.84rem">{{ h.action }}</div><div class="list-meta">{{ h.created_at|date:"d/m/Y H:i" }} · {{ h.actor_label }}{% if h.status_before or h.status_after %} · {{ h.status_before|default:"—" }} → {{ h.status_after|default:"—" }}{% endif %}</div></div></li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+  </div>
+  <aside class="card card-pad">
+    <h2 style="font-size:1rem">Ficha</h2>
+    <dl class="dl" style="grid-template-columns:110px 1fr">
+      <dt>Campus</dt><dd>{{ target.campus|default:"Plataforma" }}</dd>
+      <dt>Alta</dt><dd>{{ target.date_joined|date:"d/m/Y" }}</dd>
+      <dt>Último acceso</dt><dd>{{ target.last_login|date:"d/m/Y H:i"|default:"—" }}</dd>
+    </dl>
+    <p class="small subtle mt-2 mb-0">Vista minimizada: el panel no muestra datos que no se necesitan para administrar la cuenta.</p>
+  </aside>
+</div>
+{% if can_manage %}
+<dialog class="modal" id="dlg-suspend" aria-labelledby="dlg-suspend-title">
+  <form method="post" action="{% url 'accounts:set_status' target.pk %}">{% csrf_token %}
+    <input type="hidden" name="status" value="suspendido">
+    <div class="modal-head"><h2 id="dlg-suspend-title">Suspender a {{ target.display_name }}</h2></div>
+    <div class="modal-body"><p class="muted small">Se cerrarán sus sesiones activas y no podrá entrar ni usar enlaces antiguos. Sus solicitudes y la auditoría se conservan.</p>
+      <div class="field"><label class="label" for="susp-reason">Motivo <span class="req">*</span></label><textarea class="textarea" id="susp-reason" name="reason" required minlength="5" maxlength="200"></textarea></div></div>
+    <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Cancelar</button><button class="btn btn-solid-danger" type="submit">Suspender</button></div>
+  </form>
+</dialog>
+{% endif %}
+{% endblock %}

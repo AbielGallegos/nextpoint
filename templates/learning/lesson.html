@@ -1,0 +1,28 @@
+{% extends "layouts/portal.html" %}{% load np %}
+{% block title %}{{ lesson.title }}{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Ruta"><a href="{% url 'learning:catalog' %}">Cursos</a>{% icon 'chevron-right' 'i-sm' %}<a href="{% url 'learning:detail' c.pk %}">{{ c.title }}</a>{% icon 'chevron-right' 'i-sm' %}<span>Lección {{ idx|add:1 }}</span></nav>
+<div class="grid g-main">
+  <article class="card">
+    <div class="card-head"><div><div class="eyebrow">Lección {{ idx|add:1 }} de {{ lessons|length }} · {{ lesson.get_kind_display }}</div><h1 class="mb-0" style="font-size:1.4rem">{{ lesson.title }}</h1></div>{% if is_done %}{% badge 'completada' 'Completada' %}{% endif %}</div>
+    <div class="card-body">
+      {% if locked %}
+        <div class="notice t-warn">{% icon 'lock' %}<div>Completa primero las lecciones anteriores para registrar avance en esta.</div></div>
+      {% endif %}
+      <div class="lesson-body">{{ lesson.content|paragraphs }}</div>
+    </div>
+    <div class="card-foot cluster between">
+      {% if prev %}<a class="btn" href="{% url 'learning:lesson' prev.pk %}">{% icon 'arrow-left' %} Anterior</a>{% else %}<span></span>{% endif %}
+      {% if not is_done and not locked %}
+        <form method="post" action="{% url 'learning:complete' lesson.pk %}">{% csrf_token %}<button class="btn btn-primary" type="submit">{% icon 'check' %} Marcar como completada{% if next %} y continuar{% endif %}</button></form>
+      {% elif next %}<a class="btn btn-primary" href="{% url 'learning:lesson' next.pk %}">Siguiente {% icon 'arrow-right' %}</a>
+      {% else %}<a class="btn btn-primary" href="{% url 'learning:detail' c.pk %}">Volver al curso</a>{% endif %}
+    </div>
+  </article>
+  <aside class="card card-pad">
+    <h2 style="font-size:1rem">Avance: {{ pct }} %</h2>
+    <div class="progress {% if pct == 100 %}is-done{% endif %}" role="progressbar" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100" aria-label="Progreso"><span style="width:{{ pct }}%"></span></div>
+    <ul class="lesson-nav mt-2">{% for l in lessons %}<li class="{% if l.pk in done %}done{% endif %}"><a href="{% url 'learning:lesson' l.pk %}" {% if l.pk == lesson.pk %}aria-current="page"{% endif %}>{% if l.pk in done %}{% icon 'check-circle-2' %}{% else %}{% icon 'circle' %}{% endif %} {{ l.title }}</a></li>{% endfor %}</ul>
+  </aside>
+</div>
+{% endblock %}

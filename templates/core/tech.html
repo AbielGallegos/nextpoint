@@ -1,0 +1,15 @@
+{% extends "layouts/panel.html" %}{% load np %}
+{% block title %}Estado técnico{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">{% icon 'server' 'i-sm' %} Plataforma</div><h1>Estado técnico</h1><p>Salud del servicio sin exponer secretos ni contenidos de estudiantes.</p></div><a class="btn" href="{% url 'core:health' %}">{% icon 'activity' %} /health (JSON)</a></div>
+<div class="grid g-4 kpi-grid">
+  <div class="card kpi"><span class="kpi-icon t-ok">{% icon 'activity' %}</span><div><div class="kpi-value">OK</div><div class="kpi-label">Aplicación</div></div></div>
+  <div class="card kpi"><span class="kpi-icon t-info">{% icon 'server' %}</span><div><div class="kpi-value" style="font-size:1.2rem">{{ db_vendor }}</div><div class="kpi-label">Base de datos</div></div></div>
+  <div class="card kpi"><span class="kpi-icon {% if pending_migrations %}t-danger{% else %}t-ok{% endif %}">{% icon 'layers' %}</span><div><div class="kpi-value">{{ pending_migrations }}</div><div class="kpi-label">Migraciones pendientes</div></div></div>
+  <div class="card kpi"><span class="kpi-icon {% if debug %}t-danger{% else %}t-ok{% endif %}">{% icon 'shield-check' %}</span><div><div class="kpi-value" style="font-size:1.2rem">{% if debug %}DEBUG{% else %}Seguro{% endif %}</div><div class="kpi-label">Modo · cookies {% if secure_cookies %}Secure{% else %}sin HTTPS{% endif %}</div></div></div>
+</div>
+<section class="card mt-3"><div class="card-head"><h2>Eventos de seguridad recientes</h2><a class="small" href="{% url 'reporting:audit' %}?tipo=seguridad">Ver bitácora</a></div>
+  <div class="table-wrap"><table class="table responsive"><thead><tr><th>Fecha</th><th>Evento</th><th>Actor</th><th>Traza</th></tr></thead><tbody>
+  {% for e in security %}<tr><td class="cell-main nowrap">{{ e.created_at|date:"d/m/Y H:i:s" }}</td><td data-label="Evento" class="mono small">{{ e.action }}</td><td data-label="Actor">{{ e.actor_label }}</td><td data-label="Traza" class="mono small">{{ e.trace_id }}</td></tr>{% empty %}<tr><td colspan="4" class="muted small">Sin eventos.</td></tr>{% endfor %}</tbody></table></div></section>
+<div class="notice t-info mt-2">{% icon 'info' %}<div class="small">Respaldo y restauración de la base de ensayo: ver <span class="mono">docs/OPERACION.md</span> (comandos <span class="mono">backup_demo</span> / <span class="mono">restore_demo</span>). Nunca se restaura sobre producción.</div></div>
+{% endblock %}
