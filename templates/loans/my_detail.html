@@ -29,7 +29,7 @@
       </dl></div>
     {% if req.status == 'aprobado' %}<div class="notice t-ok">{% icon 'check-circle-2' %}<div>Tu solicitud fue aprobada. Revisa las indicaciones de entrega con el área responsable.</div></div>{% endif %}
     {% if req.status == 'entregado' %}<div class="notice t-warn">{% icon 'clock' %}<div>Devuelve el material el {{ req.due_date|date:"d/m/Y" }}. La devolución tardía se registra, pero no genera cobros.</div></div>{% endif %}
-    <a class="btn w-full" href="{% url 'cases:new' %}?categoria=">{% icon 'flag' %} Reportar un problema con este material</a>
+    {% if report_category %}<a class="btn w-full" href="{% url 'cases:new' %}?categoria={{ report_category.pk }}&asunto={{ req.folio|urlencode }}%20·%20{{ req.resource.name|urlencode }}">{% icon 'flag' %} Reportar un problema con este material</a>{% endif %}
   </aside>
 </div>
 {% if req.status in 'solicitado en_revision aprobado' %}

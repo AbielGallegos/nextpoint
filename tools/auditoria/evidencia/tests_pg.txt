@@ -1,0 +1,11 @@
+Found 89 test(s).
+Creating test database for alias 'default'...
+System check identified no issues (0 silenced).
+.{"ts": "2026-11-23T02:28:22.006811+00:00", "level": "ERROR", "logger": "django.request", "trace_id": "-", "message": "Service Unavailable: /app/cursos/"}
+.............................................{"ts": "2026-11-23T02:28:27.209809+00:00", "level": "WARNING", "logger": "django.security.csrf", "trace_id": "e21155a261994071", "message": "Forbidden (CSRF cookie not set.): /acceso/"}
+...........................................
+----------------------------------------------------------------------
+Ran 89 tests in 11.133s
+
+OK
+Destroying test database for alias 'default'...

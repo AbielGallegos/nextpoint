@@ -1,0 +1,18 @@
+OK    Anónimo redirigido a acceso en 127 rutas privadas []
+OK    Estudiante: 75 rutas de panel → 403/404 []
+OK    Estudiante: 95 acciones POST administrativas rechazadas []
+OK    IDOR horizontal: 3 detalles de alumno 1 → 404 para alumna 2 []
+OK    Administración técnica sin acceso a 7 casos/préstamos []
+OK    Docente bloqueado en módulos ajenos []
+OK    Gestor no lista cuentas de estudiantes (minimización)
+OK    GET /salir/ → 405
+OK    GET acción aprobar → 405
+OK    POST sin token CSRF → 403
+OK    Login ignora next externo → /inicio/
+OK    Sesión rotada al iniciar sesión (2 cookies)
+OK    Cookie de sesión HttpOnly
+OK    Cabeceras: XFO DENY, CSP frame-ancestors, no-store
+OK    Recuperación: misma respuesta para correo existente e inexistente
+OK    Límite por IP ante correos rotativos (códigos finales [429, 429, 429])
+
+16 OK · 0 hallazgos

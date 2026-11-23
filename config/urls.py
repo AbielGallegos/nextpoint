@@ -1,6 +1,14 @@
+from django.templatetags.static import static
 from django.urls import include, path
+from django.shortcuts import redirect
+
+
+def favicon(request):
+    return redirect(static("img/nextpoint-icon.png"), permanent=True)
+
 
 urlpatterns = [
+    path("favicon.ico", favicon),
     path("", include("apps.core.urls")),
     path("", include("apps.accounts.urls")),
     path("", include("apps.catalog.urls")),

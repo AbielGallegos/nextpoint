@@ -74,6 +74,8 @@ def new(request):
             errors = e.fields
             messages.error(request, e.message)
     preselected = data.get("category") or request.GET.get("categoria", "")
+    if not data and request.GET.get("asunto"):
+        data = {"subject": request.GET.get("asunto", "")[:140]}
     similar = []
     return render(request, "cases/new.html", {"categories": categories, "errors": errors, "data": data, "preselected": str(preselected),
                                               "key": data.get("idempotency_key") or uuid.uuid4(), "similar": similar,

@@ -91,7 +91,7 @@ def active_rule(campus):
 
 
 # --------------------------------------------------------------------------- candidatos
-def gather_candidates(user, *, campus_only=True):
+def gather_candidates(user, *, campus_only=True, as_student=False):
     """Elementos publicados que el usuario puede ver (reutiliza las reglas de visibilidad de cada módulo)."""
     from apps.cases.models import ServiceCategory
     from apps.communications.models import Alert
@@ -112,7 +112,7 @@ def gather_candidates(user, *, campus_only=True):
         out.append(Candidate(
             "materiales", r.pk, r.name, r.description[:180], list(r.tags) + [r.category.slug], r.campus_id, r.campus.name,
             av["available"] > 0, f"{av['available']} de {av['operable']} disponible(s)" if av["available"] else "Sin disponibilidad inmediata",
-            r.updated_at, reverse("catalog:detail", args=[r.pk]), "Ver y solicitar",
+            r.updated_at, reverse("catalog:detail", args=[r.pk]), "Ver y solicitar", modality="Presencial",
             meta={"category": r.category.name, "location": r.location.public_hint if r.location else ""},
         ))
 
@@ -133,12 +133,14 @@ def gather_candidates(user, *, campus_only=True):
         ))
 
     alerts = Alert.objects.filter(Alert.visible_q(user), category__in=Alert.OPPORTUNITY_CATEGORIES).select_related("campus")
-    if not campus_only:
+    if as_student or not campus_only:
         alerts = Alert.objects.filter(
             Q(status=Alert.Status.PUBLISHED, publish_at__lte=timezone.now()) & (Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())),
             category__in=Alert.OPPORTUNITY_CATEGORIES, institution_id=user.campus.institution_id,
             audience__in=["todos", "estudiantes"],
         ).select_related("campus")
+        if campus_only:
+            alerts = alerts.filter(Q(campus__isnull=True) | Q(campus_id=user.campus_id))
     for a in alerts:
         out.append(Candidate(
             "oportunidades", a.pk, a.title, a.summary, list(a.tags) + [a.category], a.campus_id, a.campus.name if a.campus else "Toda la institución",
@@ -186,7 +188,7 @@ def score_candidate(c: Candidate, *, category, tags, user_campus_id, weights, no
 
 
 def recommend(user, *, category="", tags=(), campus_only=True, only_available=False, modality="", level="",
-              weights=None, min_score=None, limit=10):
+              weights=None, min_score=None, limit=10, as_student=False):
     """Devuelve (resultados ordenados, regla usada). Sin coincidencias pertinentes → lista vacía."""
     rule = active_rule(user.campus) if user.campus_id else None
     if weights is None:
@@ -195,12 +197,12 @@ def recommend(user, *, category="", tags=(), campus_only=True, only_available=Fa
         min_score = rule.min_score if rule else 40
     tags = normalize_tags(tags)
     results = []
-    for c in gather_candidates(user, campus_only=campus_only):
+    for c in gather_candidates(user, campus_only=campus_only, as_student=as_student):
         if only_available and not c.available:
             continue
-        if modality and c.modality and modality.lower() not in c.modality.lower():
-            continue
-        if level and c.level and level.lower() != c.level.lower():
+        if modality and modality.lower() not in (c.modality or "").lower():
+            continue  # sin modalidad declarada no se presume compatible
+        if level and c.kind == "cursos" and level.lower() != c.level.lower():
             continue
         r = score_candidate(c, category=category, tags=tags, user_campus_id=user.campus_id, weights=weights)
         relevant = r.breakdown["category"] > 0 or r.matched_tags

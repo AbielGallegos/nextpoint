@@ -96,8 +96,11 @@ def mine(request):
 def my_detail(request, pk):
     # Filtrar por solicitante: un folio ajeno responde 404 (no revela su existencia).
     req = get_object_or_404(LoanRequest.objects.select_related("resource", "unit", "area", "decided_by"), pk=pk, applicant=request.user)
+    from apps.cases.models import ServiceCategory
+
+    report_category = ServiceCategory.objects.filter(campus_id=req.campus_id, kind="reporte_recurso", active=True).first()
     return render(request, "loans/my_detail.html", {"req": req, "events": req.events.select_related("actor"), "steps": _steps(req),
-                                                    "today": timezone.localdate()})
+                                                    "today": timezone.localdate(), "report_category": report_category})
 
 
 @require_POST

@@ -10,6 +10,8 @@ from .models import get_policy
 
 
 def paginate(request, queryset, campus=None):
+    if campus is None and getattr(request, "user", None) is not None and request.user.is_authenticated:
+        campus = request.user.campus
     size = get_policy("list_page_size", campus)
     paginator = Paginator(queryset, size)
     try:

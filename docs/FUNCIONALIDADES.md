@@ -1,12 +1,12 @@
 # Registro de funcionalidades
 
-Estado real al 22/11/2026. «Terminado» = vista + validación en servidor + persistencia + permisos + prueba automatizada o verificación manual registrada.
+Estado real al 22/11/2026, después de la auditoría independiente (`docs/AUDITORIA.md`). «Terminado» = vista + validación en servidor + persistencia + permisos + prueba automatizada o verificación manual registrada.
 
 ## P0 — obligatorio para la demostración
 
 | Funcionalidad | Estado | Evidencia |
 | --- | --- | --- |
-| Inicio/cierre de sesión, sesiones protegidas, límite de intentos | Terminado | TC‑001…004, rate limit |
+| Inicio/cierre de sesión, sesiones protegidas, límite de intentos por correo+IP y por IP | Terminado | TC‑001…004, TC‑010, F05 |
 | Separación de roles (7 perfiles) con RBAC + alcance área/campus/propietario/asignado | Terminado | TC‑005, TC‑006, E2E‑06 |
 | Alta de cuentas privilegiadas solo por invitación de un uso | Terminado | TC‑009, TC‑007 |
 | Dashboard del estudiante con contadores reales, vencimientos, actividad, avisos y sugerencias | Terminado | `test_dashboard_counters_match_lists` |

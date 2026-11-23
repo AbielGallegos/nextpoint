@@ -70,7 +70,7 @@ Guion completo de la demostración: [`docs/DEMO.md`](docs/DEMO.md).
 ## 7. Pruebas
 
 ```bash
-python manage.py test tests            # 72 pruebas automatizadas
+python manage.py test tests            # 89 pruebas automatizadas
 ```
 
 La prueba de concurrencia real **E2E-07** (dos gestores aprueban a la vez el último ejemplar) solo se ejecuta con PostgreSQL (`DATABASE_URL` definida); con SQLite aparece como *skipped* y la integridad se cubre con pruebas secuenciales y el modo de transacción `IMMEDIATE`. Resultados y matriz de casos: [`docs/PRUEBAS.md`](docs/PRUEBAS.md).
@@ -91,6 +91,7 @@ python manage.py restore_demo backups/archivo.json --yes
 - [`docs/DEMO.md`](docs/DEMO.md) — cuentas, escenarios E2E y guion de 5 minutos.
 - [`docs/FUNCIONALIDADES.md`](docs/FUNCIONALIDADES.md) — registro de lo terminado y lo pendiente (P0/P1/P2).
 - [`docs/PRUEBAS.md`](docs/PRUEBAS.md) — pruebas ejecutadas y resultados reales.
+- [`docs/AUDITORIA.md`](docs/AUDITORIA.md) — auditoría independiente: hallazgos, correcciones y matriz por módulo (scripts en `tools/auditoria/`).
 - [`docs/OPERACION.md`](docs/OPERACION.md) — despliegue, respaldos, salud y variables.
 
 ## Licencias de terceros

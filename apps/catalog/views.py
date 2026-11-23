@@ -164,6 +164,13 @@ def unit_state(request, pk, unit_id):
         record(request.user, "unit.state_changed", unit, before=before, after=new_state, campus=resource.campus, area=resource.area,
                label=f"{resource.code} · {unit.serial}", detail={"note": note[:120]})
     messages.success(request, f"Ejemplar {unit.serial}: {unit.get_state_display()}.")
+    if new_state != ResourceUnit.State.AVAILABLE:
+        from apps.loans.models import LoanRequest
+
+        held = list(LoanRequest.objects.filter(unit=unit, status="aprobado").values_list("folio", flat=True))
+        if held:
+            messages.warning(request, f"Atención: {', '.join(held)} tiene(n) este ejemplar apartado. No podrá entregarse hasta que "
+                                      "el ejemplar vuelva a estar disponible; cancela el préstamo con motivo si no se reparará a tiempo.")
     return redirect("catalog:manage_detail", pk=pk)
 
 

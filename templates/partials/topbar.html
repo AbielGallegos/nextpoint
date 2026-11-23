@@ -1,11 +1,11 @@
 {% load np %}
 <header class="topbar">
   <button class="icon-btn nav-toggle" type="button" data-nav-toggle aria-controls="sidebar" aria-expanded="false" aria-label="Abrir menú">{% icon 'menu' %}</button>
-  <form class="topbar-search" role="search" method="get" action="{{ search_action }}">
+  {% if search_action %}<form class="topbar-search" role="search" method="get" action="{{ search_action }}">
     <label class="sr-only" for="topsearch">{{ search_label }}</label>
     {% icon 'search' %}
     <input class="input" id="topsearch" name="q" type="search" placeholder="{{ search_label }}" autocomplete="off">
-  </form>
+  </form>{% endif %}
   <div class="topbar-actions">
     <a class="icon-btn" href="{% url 'communications:notifications' %}" aria-label="Notificaciones{% if unread_notifications %}: {{ unread_notifications }} sin leer{% endif %}">
       {% icon 'bell' %}{% if unread_notifications %}<span class="dot">{{ unread_notifications|stringformat:"d" }}</span>{% endif %}

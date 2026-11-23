@@ -106,7 +106,8 @@ def rules(request):
                 sim_user = type(request.user).objects.get(pk=request.user.pk)
                 sim_user.campus = campus
             sim_results, _ = recommend(sim_user, category=sim["category"], tags=normalize_tags(sim["tags"]),
-                                       weights=sim_rule.weights if sim_rule else DEFAULT_WEIGHTS, min_score=sim_rule.min_score if sim_rule else 40)
+                                       weights=sim_rule.weights if sim_rule else DEFAULT_WEIGHTS, min_score=sim_rule.min_score if sim_rule else 40,
+                                       as_student=True)
     usage = MatchQuery.objects.filter(campus=campus).values("category").annotate(n=Count("id")).order_by("-n")
     return render(request, "smartmatch/rules.html", {
         "campus": campus, "versions": versions[:10], "active": active, "draft": draft, "needs": Need.objects.filter(campus=campus),

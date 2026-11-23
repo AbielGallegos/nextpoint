@@ -104,6 +104,20 @@ def reports(request):
     })
 
 
+def _safe(value):
+    """Evita inyección de fórmulas al abrir el CSV en una hoja de cálculo."""
+    text = "" if value is None else str(value)
+    return "'" + text if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text
+
+
+class _SafeWriter:
+    def __init__(self, writer):
+        self.w = writer
+
+    def writerow(self, row):
+        self.w.writerow([_safe(c) for c in row])
+
+
 @require_perm("reports.export")
 def export(request):
     start, end, area_id = _report_filters(request)
@@ -114,7 +128,7 @@ def export(request):
     response = HttpResponse(content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="nextpoint_{kind}_{start}_{end}.csv"'
     response.write("﻿")
-    writer = csv.writer(response)
+    writer = _SafeWriter(csv.writer(response))
     if kind == "prestamos":
         qs = LoanRequest.objects.filter(metrics.loan_scope_q(request.user), created_at__gte=lo, created_at__lte=hi)
         if area_id:

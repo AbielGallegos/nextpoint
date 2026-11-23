@@ -33,7 +33,7 @@
   <section class="card"><div class="card-head"><h2>Formación</h2></div><div class="card-body">
     <dl class="dl" style="grid-template-columns:1fr auto"><dt>Cursos publicados</dt><dd><strong>{{ courses.published }}</strong></dd><dt>Inscripciones</dt><dd><strong>{{ courses.enrollments }}</strong></dd><dt>Completadas</dt><dd><strong>{{ courses.completed }}</strong></dd><dt>Avance promedio</dt><dd><strong>{% if courses.avg_progress is not None %}{{ courses.avg_progress }} %{% else %}Sin datos{% endif %}</strong></dd></dl></div></section>
   <section class="card"><div class="card-head"><h2>Satisfacción</h2></div><div class="card-body">
-    {% if cases.ratings %}<p class="mb-0">{{ cases.ratings|length }} valoración{{ cases.ratings|length|pluralize:"es" }} voluntaria{{ cases.ratings|length|pluralize }} (muestra pequeña: interpretar con cautela).</p>{% else %}<p class="muted small mb-0">Sin valoraciones en el periodo.</p>{% endif %}</div></section>
+    {% if cases.ratings %}<div class="kpi-value">{{ cases.rating_avg }} / 5</div><p class="mb-0 small muted">Promedio de {{ cases.ratings|length }} valoración{{ cases.ratings|length|pluralize:"es" }} voluntaria{{ cases.ratings|length|pluralize }} · {{ cases.rating_positive }} positiva{{ cases.rating_positive|pluralize }} (4–5). Muestra pequeña: interpretar con cautela.</p>{% else %}<p class="muted small mb-0">Sin valoraciones en el periodo.</p>{% endif %}</div></section>
 </div>
 <p class="small subtle mt-2">Definiciones: «Préstamos activos» = entregados sin devolución registrada. «Acuse en meta» = casos acusados dentro de {{ target }} días hábiles (lunes a viernes, sin calendario de asuetos configurado) entre casos elegibles. Meta propuesta, pendiente de aprobación institucional.</p>
 {% endblock %}

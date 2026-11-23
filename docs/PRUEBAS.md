@@ -4,15 +4,19 @@
 
 | Entorno | Comando | Resultado real |
 | --- | --- | --- |
-| Python 3.13 · Django 5.2.19 · **PostgreSQL 16** | `DATABASE_URL=… python manage.py test tests` | **77 pruebas, 77 OK** (incluye concurrencia E2E‑07 con hilos) |
-| Python 3.13 · Django 5.2.19 · **SQLite** | `python manage.py test tests` | **77 pruebas: 76 OK, 1 omitida** (E2E‑07 concurrente requiere PostgreSQL) |
+| Python 3.13 · Django 5.2.19 · **PostgreSQL 16** | `DATABASE_URL=… python manage.py test tests` | **89 pruebas, 89 OK** (tras la auditoría; antes 77/77) (incluye concurrencia E2E‑07 con hilos) |
+| Python 3.13 · Django 5.2.19 · **SQLite** | `python manage.py test tests` | **89 pruebas: 88 OK, 1 omitida** (E2E‑07 concurrente requiere PostgreSQL) |
 | Humo de rutas (7 perfiles, 70 URLs) | script de recorrido con cliente HTTP | 0 fallas; único 403 esperado: estudiante → `/panel/` |
 | Instalación limpia | copia sin `.env` ni BD → `init_env` → `migrate` → `seed_demo` ×2 → `test` → `collectstatic` → servidor sin DEBUG sirviendo páginas y estáticos | OK |
 | Revisión visual | Chrome headless 1366 px y 390 px: landing, inicio estudiante, SmartMatch, catálogo móvil, panel, préstamo, caso, informes, lección | Corregidos: contraste del logotipo y del botón de acceso, barra de comparación visible por error, relleno del menú lateral, actividad duplicada |
 
 Defectos encontrados por las pruebas y corregidos antes de entregar: `SELECT … FOR UPDATE` sobre joins anulables (solo fallaba en PostgreSQL), parámetro vacío en el simulador SmartMatch (500), orden de validaciones al solicitar un recurso sin ejemplares, prueba de restauración dentro de transacción.
 
-## Detalle por prueba (ejecución en PostgreSQL)
+## Auditoría independiente
+
+Ver `docs/AUDITORIA.md`: rastreo de 346 páginas, E2E‑01…07 en Chrome real (68 comprobaciones), 16 sondas de seguridad, 7 de inyección, 22 invariantes de BD y 384 vistas responsive. Se agregaron 12 pruebas de regresión en `tests/test_audit_regressions.py`.
+
+## Detalle por prueba (ejecución en PostgreSQL, previa a la auditoría)
 
 | Prueba | Resultado |
 | --- | --- |
@@ -98,6 +102,6 @@ Defectos encontrados por las pruebas y corregidos antes de entregar: `SELECT …
 
 Cubiertos por pruebas automatizadas: TC‑001…009, 011…017, 020, 021, 023…027, 029…032, 034…046, 048…057, 059…067, 072…076.
 Verificados con el recorrido de humo y la revisión visual (sin aserción automatizada dedicada): TC‑018, 019 (también dentro de E2E‑01), 028, 047, 058, 068…071, 077 (todo sirve desde la máquina local, sin recursos externos), 078.
-No ejecutados: TC‑010 (expiración real de sesión: configurada a 2 h de inactividad), TC‑079 (revisión formal de logs) y TC‑080 (fallo de respaldo forzado; el comando sí rechaza respaldos vacíos). Accesibilidad: falta auditoría formal WCAG 2.2 con lector de pantalla.
+TC‑010 se automatizó durante la auditoría (`test_tc010_expired_session_requires_login`). No ejecutados: TC‑079 (revisión formal de logs) y TC‑080 (fallo de respaldo forzado; el comando sí rechaza respaldos vacíos). Accesibilidad: falta auditoría formal WCAG 2.2 con lector de pantalla.
 Verificados manualmente: TC‑011…016, 018, 019, 021, 022, 025, 028, 033, 047, 058, 068…071, 077, 078.
 No ejecutados: TC‑010 (expiración por tiempo real de sesión: configurada a 2 h, no se esperó), TC‑079 (revisión formal de logs), TC‑080 (fallo de respaldo forzado) — documentados como pendientes.

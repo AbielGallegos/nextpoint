@@ -76,7 +76,9 @@ def case_metrics(user, start=None, end=None, area_id=None, target_days=2):
         "median_ack_h": round(median(ack_hours), 1) if ack_hours else None,
         "median_resolve_h": round(median(res_hours), 1) if res_hours else None,
         "close_rate": round(resolved_or_closed * 100 / total, 1) if total else None,
-        "ratings": list(qs.filter(rating__isnull=False).values_list("rating", flat=True)),
+        "ratings": (ratings := list(qs.filter(rating__isnull=False).values_list("rating", flat=True))),
+        "rating_avg": round(sum(ratings) / len(ratings), 1) if ratings else None,
+        "rating_positive": sum(1 for r in ratings if r >= 4),
     }
 
 

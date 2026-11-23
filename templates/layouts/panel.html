@@ -42,8 +42,9 @@
   </aside>
   <div class="drawer-backdrop" data-nav-close></div>
   <div class="main">
-    {% url 'cases:queue' as search_action %}
+    {% if perms_np.cases_manage or perms_np.cases_supervise or perms_np.cases_attend_assigned %}{% url 'cases:queue' as search_action %}
     {% include "partials/topbar.html" with search_action=search_action search_label="Buscar folio o asunto…" %}
+    {% else %}{% include "partials/topbar.html" with search_action="" search_label="" %}{% endif %}
     <main class="content" id="contenido" tabindex="-1">{% block content %}{% endblock %}</main>
   </div>
 </div>

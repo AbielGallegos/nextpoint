@@ -1,0 +1,72 @@
+[E2E-01] OK    Catálogo: búsqueda encuentra el kit con 1 de 1 disponible
+[E2E-01] OK    Ficha: disponibilidad hoy = 1
+[E2E-01] OK    Folio generado NP-PRE-00004 y página de seguimiento
+[E2E-01] OK    Estado visible para estudiante: Solicitado
+[E2E-01] OK    Gestor recibe notificación de la nueva solicitud
+[E2E-01] OK    Gestor marca en revisión
+[E2E-01] OK    Estudiante ve 'En revisión' tras recargar (reflejo gestor→estudiante)
+[E2E-01] OK    Gestor aprueba: Préstamo aprobado y ejemplar apartado.
+[E2E-01] OK    Estudiante ve 'Aprobado' con indicaciones
+[E2E-01] OK    Estudiante recibe notificación de aprobación
+[E2E-01] OK    Gestor registra entrega
+[E2E-01] OK    Inventario administrativo: kit 'Ocupado'
+[E2E-01] OK    Catálogo del estudiante: kit 'Ocupado'
+[E2E-01] OK    Dashboard estudiante: 1 préstamo activo
+[E2E-01] OK    Gestor registra devolución
+[E2E-01] OK    Inventario vuelve a 'Disponible' en el portal
+[E2E-01] OK    Historial del estudiante completo: ['Solicitado', 'En revisión', 'Aprobado', 'Entregado', 'Devuelto']
+[E2E-02] OK    Folio de caso NP-SOL-00005
+[E2E-02] OK    Contador del estudiante 1→2
+[E2E-02] OK    Caso aparece en la bandeja del gestor de servicios
+[E2E-02] OK    Gestor acusa recibo (mensaje aclara que no cierra)
+[E2E-02] OK    Estudiante ve 'Recibido' y sigue abierto
+[E2E-02] OK    Nota interna NO visible al estudiante
+[E2E-02] OK    Respuesta pública visible al estudiante
+[E2E-02] OK    Mensaje del estudiante visible al gestor
+[E2E-02] OK    Gestor resuelve con nota (diálogo modal)
+[E2E-02] OK    Gestor cierra
+[E2E-02] OK    Estudiante recibe notificación de cierre
+[E2E-02] OK    La notificación abre el caso con estado Cerrado
+[E2E-02] OK    Valoración guardada
+[E2E-02] OK    Historial del estudiante completo
+[E2E-03] OK    Elegir necesidad rellena categoría y etiquetas (JS)
+[E2E-03] OK    Primera recomendación: Kit de redes
+[E2E-03] OK    Explicación visible
+[E2E-03] OK    Desglose de puntaje desplegable
+[E2E-03] OK    Barra de comparación aparece con 2 seleccionados
+[E2E-03] OK    Comparación lado a lado
+[E2E-03] OK    Detalle del recurso desde la recomendación
+[E2E-03] OK    Solicitud creada desde SmartMatch con folio NP-PRE-00005
+[E2E-03] OK    Cancelación conserva el registro (estado Cancelado)
+[E2E-04] OK    Borrador creado
+[E2E-04] OK    Borrador invisible para el estudiante
+[E2E-04] OK    Publicado
+[E2E-04] OK    Estudiante lo ve publicado
+[E2E-04] OK    Aparece en avisos prioritarios del inicio
+[E2E-04] OK    Marcado como leído
+[E2E-04] OK    Gestor ve 1 lectura (sin lista nominal)
+[E2E-04] OK    Retirado: desaparece del portal
+[E2E-05] OK    Curso creado en borrador
+[E2E-05] OK    Dos lecciones agregadas
+[E2E-05] OK    Enviado a revisión
+[E2E-05] OK    En revisión: invisible al estudiante
+[E2E-05] OK    Gestor autoriza la publicación
+[E2E-05] OK    Inscrito: 0 %
+[E2E-05] OK    Lección 1 completa: 50 %
+[E2E-05] OK    Lección 2 completa: 100 %
+[E2E-05] OK    Progreso persiste tras nueva sesión
+[E2E-05] OK    Vista administrativa de inscripciones muestra 100 %
+[E2E-06] OK    Alumno A abre /app/solicitudes/1/ de alumna B → 404
+[E2E-06] OK    Alumno A abre /app/prestamos/3/ de alumna B → 404
+[E2E-06] OK    Alumno abre /panel/ → 403
+[E2E-06] OK    Alumno consume API administrativa → 403
+[E2E-06] OK    Gestor de laboratorio abre caso de servicios → 404
+[E2E-07] OK    Alumna 2 cancela solicitud pendiente (diálogo)
+[E2E-07] OK    Dos solicitudes compiten: ['NP-PRE-00006', 'NP-PRE-00007']
+[E2E-07] OK    Coordinación invita a un segundo gestor (enlace de un solo uso)
+[E2E-07] OK    Segundo gestor activa su cuenta y entra al panel
+[E2E-07] OK    Aprobaciones casi simultáneas (0.83s): una gana, otra recibe conflicto → ['Préstamo aprobado y ejemplar apartado.', 'No hay ejemplares libres para esas fechas: ot']
+
+CONSOLA/CSP: ['alumno.demo1: error: Failed to load resource: the server responded with a status of 404 (Not Found)', 'alumno.demo1: error: Failed to load resource: the server responded with a status of 404 (Not Found)', 'alumno.demo1: error: Failed to load resource: the server responded with a status of 403 (Forbidden)', 'alumno.demo1: error: Failed to load resource: the server responded with a status of 403 (Forbidden)', 'gestor.laboratorio: error: Failed to load resource: the server responded with a status of 404 (Not Found)']
+
+RESUMEN: 68 OK · 0 fallas

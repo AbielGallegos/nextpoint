@@ -1,0 +1,8 @@
+== anon: 5 URLs {200: 5} · 2 destinos POST · 0 hallazgos
+== alumno.demo1: 53 URLs {302: 2, 200: 51} · 29 destinos POST · 0 hallazgos
+== alumna.demo2: 55 URLs {302: 2, 200: 53} · 30 destinos POST · 0 hallazgos
+== gestor.laboratorio: 63 URLs {302: 2, 200: 61} · 49 destinos POST · 0 hallazgos
+== gestor.servicios: 49 URLs {302: 2, 200: 47} · 32 destinos POST · 0 hallazgos
+== docente.demo: 27 URLs {302: 2, 200: 25} · 8 destinos POST · 0 hallazgos
+== coord.demo: 60 URLs {302: 2, 200: 58} · 41 destinos POST · 0 hallazgos
+== admin.demo: 34 URLs {302: 2, 200: 32} · 33 destinos POST · 0 hallazgos

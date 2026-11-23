@@ -1,7 +1,7 @@
 {% extends base %}{% load np %}
 {% block title %}Ayuda y soporte{% endblock %}
 {% block content %}
-<div class="page-head"><div><div class="eyebrow">{% icon 'life-buoy' 'i-sm' %} Ayuda</div><h1>Ayuda y soporte técnico</h1><p>Para problemas de cuenta o navegación. Para préstamos o servicios escolares usa <a href="{% url 'cases:new' %}">Solicitudes</a>.</p></div>
+<div class="page-head"><div><div class="eyebrow">{% icon 'life-buoy' 'i-sm' %} Ayuda</div><h1>Ayuda y soporte técnico</h1><p>Para problemas de cuenta o navegación.{% if is_student_user %} Para préstamos o servicios escolares usa <a href="{% url 'cases:new' %}">Solicitudes</a>.{% endif %}</p></div>
   <a class="btn" href="{% url 'core:help' %}">{% icon 'circle-help' %} Preguntas frecuentes</a></div>
 <div class="grid g-main">
   <section class="card"><div class="card-head"><h2>Mis tickets</h2></div>

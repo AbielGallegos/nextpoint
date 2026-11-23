@@ -22,6 +22,7 @@ from .forms import AcceptInvitationForm, InvitationForm, LoginForm, ProfileForm,
 from .models import Area, Campus, Invitation, LoginAttempt, Role, StaffProfile, StudentProfile, User, UserRole
 
 MAX_ATTEMPTS = 5
+MAX_ATTEMPTS_PER_IP = 20
 WINDOW = timedelta(minutes=15)
 TECHNICAL_ROLES = {Role.SUPPORT, Role.ADMIN}
 
@@ -38,8 +39,11 @@ def login_view(request):
     if request.method == "POST" and form.is_valid():
         email = form.cleaned_data["email"].lower()
         key = LoginAttempt.key_for(email, _client_ip(request))
-        recent = LoginAttempt.objects.filter(key_hash=key, created_at__gte=timezone.now() - WINDOW).count()
-        if recent >= MAX_ATTEMPTS:
+        since = timezone.now() - WINDOW
+        recent = LoginAttempt.objects.filter(key_hash=key, created_at__gte=since).count()
+        ip_key = LoginAttempt.key_for("*", _client_ip(request))
+        recent_ip = LoginAttempt.objects.filter(key_hash=ip_key, created_at__gte=since).count()
+        if recent >= MAX_ATTEMPTS or recent_ip >= MAX_ATTEMPTS_PER_IP:
             error = "Demasiados intentos. Espera 15 minutos e intenta de nuevo."
             log_security(request, "auth.rate_limited", detail={"code": "RATE_LIMITED"})
         else:
@@ -47,7 +51,7 @@ def login_view(request):
 
             user = authenticate(request, email=email, password=form.cleaned_data["password"])
             if user is None:
-                LoginAttempt.objects.create(key_hash=key)
+                LoginAttempt.objects.bulk_create([LoginAttempt(key_hash=key), LoginAttempt(key_hash=ip_key)])
                 # Mensaje genérico: no revela si la cuenta existe o está suspendida.
                 error = "Correo o contraseña incorrectos, o la cuenta no está habilitada. Si necesitas ayuda, usa «¿Olvidaste tu contraseña?»."
                 log_security(request, "auth.login_failed", detail={"code": "AUTH_FAILED"})

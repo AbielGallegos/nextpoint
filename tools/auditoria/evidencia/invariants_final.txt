@@ -1,0 +1,24 @@
+OK    Ejemplar 'prestado' ⇔ préstamo activo (10 ejemplares)
+OK    Toda solicitud 'entregado' tiene préstamo abierto
+OK    Toda solicitud 'devuelto' tiene devolución registrada
+OK    Aprobados/entregados tienen ejemplar asignado
+OK    Solicitudes sin aprobar/canceladas no retienen ejemplar
+OK    Sin apartados traslapados por ejemplar (no sobreasignación)
+OK    Último evento = estado actual en 7 préstamos
+OK    Campus/área de préstamos coherentes con el recurso
+OK    Folios únicos y no vacíos
+OK    Movimientos de entrega ligados a su folio
+OK    Último evento de estado = estado actual en 5 casos
+OK    acknowledged_at ⇔ existe evento de acuse
+OK    closed_at solo en estados finales
+OK    Casos resueltos tienen resolución documentada
+OK    Área del caso = área de su categoría
+OK    Valoraciones solo en casos cerrados
+OK    Progreso 0–100 y 'completada' ⇔ 100 %
+OK    Progreso solo en lecciones del propio curso
+OK    Notificaciones sin duplicados (dedupe_key)
+OK    Cada transición de préstamo tiene su registro de auditoría
+OK    Cada transición de caso tiene auditoría
+OK    Ningún recurso publicado sin ejemplares
+
+22 OK · 0 fallas

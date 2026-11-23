@@ -1,0 +1,9 @@
+OK    XSS en asunto/descripción del caso (portal) escapado
+OK    XSS en caso (panel) escapado
+OK    XSS en bandeja escapado
+OK    XSS en respuesta del gestor escapado
+OK    XSS en recurso (panel) escapado
+OK    XSS en aviso (detalle e inicio) escapado
+OK    CSV de solicitudes neutraliza fórmulas en celdas
+
+7 OK · 0 hallazgos
